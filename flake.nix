@@ -11,13 +11,14 @@
     {
       devShells = eachSystem (pkgs: {
         default = pkgs.mkShell {
-          buildInputs = [
-            pkgs.nodejs_22
+          buildInputs = with pkgs; [
+            nodejs_22
 
-            pkgs.bun
+            bun
 
-            pkgs.nodePackages.typescript
-            pkgs.nodePackages.typescript-language-server
+            eslint
+            nodePackages.typescript
+            nodePackages.typescript-language-server
           ];
         };
       });
