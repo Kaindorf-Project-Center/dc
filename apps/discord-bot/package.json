@@ -1,0 +1,12 @@
+{
+    "name": "discord-bot",
+    "version": "1.0.0",
+    "main": "dist/index.js",
+    "scripts": {
+        "dev": "bun run src/index.ts",
+        "build": "tsc"
+    },
+    "dependencies": {
+        "discord.js": "^14.0.0"
+    }
+}
