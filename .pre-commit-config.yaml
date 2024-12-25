@@ -19,5 +19,5 @@ repos:
     hooks:
       - id: eslint
         args: [--fix]
-        files: \.[jt]sx?$  # *.js, *.jsx, *.ts and *.tsx
+        files: \.[jt]sx?$ # *.js, *.jsx, *.ts and *.tsx
         types: [file]
