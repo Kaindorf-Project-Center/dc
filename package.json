@@ -1,6 +1,7 @@
 {
     "name": "monorepo",
     "private": true,
+    "type": "module",
     "workspaces": [
         "apps/*"
     ],
@@ -9,7 +10,9 @@
         "dev:backend": "bun run apps/backend/src/server.ts"
     },
     "devDependencies": {
-        "@types/bun": "latest"
+        "@types/bun": "latest",
+        "eslint": "^9.17.0",
+        "globals": "^15.14.0"
     },
     "peerDependencies": {
         "typescript": "^5.0.0"
