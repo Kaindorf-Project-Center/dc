@@ -19,6 +19,7 @@
             bun
 
             eslint
+            nodePackages.prettier
             nodePackages.typescript
             nodePackages.typescript-language-server
           ];

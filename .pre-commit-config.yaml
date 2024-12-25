@@ -11,7 +11,7 @@ repos:
     hooks:
       - id: prettier
         args: [--write]
-        files: \.(js|ts|jsx|tsx|json|css|scss|md|yaml|yml)$
+        files: \.[jt]sx?$
 
   # Lint files using ESLint
   - repo: https://github.com/pre-commit/mirrors-eslint
