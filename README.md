@@ -1,10 +1,28 @@
-# dc
+# `dc`
+
+Make sure you have the following installed:
+
+- [Nix](https://nixos.org/)
+- [Direnv](https://direnv.net/)
+- [Nix-direnv](https://github.com/nix-community/nix-direnv)
+
+Then, in the project root, run:
+
+```bash
+direnv allow
+```
+
+That's it!
+
+---
 
 To install dependencies:
 
 ```bash
 bun install
 ```
+
+--- 
 
 To run:
 
