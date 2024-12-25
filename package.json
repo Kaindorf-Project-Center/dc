@@ -5,7 +5,8 @@
         "apps/*"
     ],
     "scripts": {
-        "dev:discord": "bun run apps/discord-bot/src/index.ts"
+        "dev:discord": "bun run apps/discord-bot/src/index.ts",
+        "dev:backend": "bun run apps/backend/src/server.ts"
     },
     "devDependencies": {
         "@types/bun": "latest"
