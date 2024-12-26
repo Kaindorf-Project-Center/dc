@@ -12,7 +12,7 @@ Then, in the project root, run:
 direnv allow
 ```
 
-That's it!
+That's it! Don't forget to set correct values for the variables mentioned in the `.env.example`.
 
 ---
 
