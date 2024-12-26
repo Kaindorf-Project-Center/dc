@@ -1,8 +1,8 @@
 import { Router } from "express";
-import { getUser, createUser } from "../controllers/userController";
+import { authenticate, callback } from "../controllers/authController";
 
 export const router = Router();
 
-// Define routes
-router.get("/user", getUser);
-router.post("/user", createUser);
+// OAuth routes
+router.get("/auth", authenticate);
+router.get("/auth/callback", callback);
