@@ -11,7 +11,6 @@ repos:
     hooks:
       - id: prettier
         args: [--write]
-        files: \.[jt]sx?$
 
   # Lint files using ESLint
   - repo: https://github.com/pre-commit/mirrors-eslint
@@ -19,5 +18,3 @@ repos:
     hooks:
       - id: eslint
         args: [--fix]
-        files: \.[jt]sx?$ # *.js, *.jsx, *.ts and *.tsx
-        types: [file]
