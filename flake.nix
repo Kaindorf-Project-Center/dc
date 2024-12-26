@@ -13,6 +13,9 @@
     devShells = eachSystem (pkgs: {
       default = pkgs.mkShell {
         buildInputs = with pkgs; [
+          git-cliff
+          gnupg
+
           pre-commit
           act
           nodejs_22
