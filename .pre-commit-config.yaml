@@ -15,7 +15,7 @@ repos:
 
   # Lint files using ESLint
   - repo: https://github.com/pre-commit/mirrors-eslint
-    rev: v8.44.0
+    rev: v9.10.0
     hooks:
       - id: eslint
         args: [--fix]
