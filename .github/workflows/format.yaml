@@ -47,7 +47,8 @@ jobs:
             ${{ runner.os }}-bun-
 
       - name: Install dependencies
-        run: bun install
+        run: |
+          bun add prettier@2.1.0 --dev
 
       - name: Run Prettier
         run: npx prettier --check .

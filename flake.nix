@@ -20,7 +20,13 @@
           bun
 
           eslint
-          nodePackages.prettier
+          (nodePackages.prettier.overrideAttrs (oldAttrs: {
+            version = "2.1.0";
+            src = pkgs.fetchurl {
+              url = "https://registry.npmjs.org/prettier/-/prettier-2.1.0.tgz";
+              sha256 = "sha256-HsANzK9TuVK0yirLwMmXUbwpTdfDIiIRsCwE+487GDU=";
+            };
+          }))
           nodePackages.typescript
           nodePackages.typescript-language-server
         ];
