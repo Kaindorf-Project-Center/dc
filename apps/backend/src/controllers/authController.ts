@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { AuthorizationCode } from "simple-oauth2";
-import { config } from "@monorepo/common";
+import { config } from "common";
 
 const oauth2Client = new AuthorizationCode({
   client: {

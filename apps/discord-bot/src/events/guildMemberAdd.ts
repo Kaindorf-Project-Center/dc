@@ -1,6 +1,6 @@
 import { GuildMember, Events, EmbedBuilder } from "discord.js";
 import { randomBytes } from "node:crypto";
-import { config } from "@monorepo/common";
+import { config } from "common";
 import type { Event } from "../types";
 
 const event: Event<typeof Events.GuildMemberAdd> = {
