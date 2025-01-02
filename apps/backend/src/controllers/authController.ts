@@ -34,6 +34,19 @@ export const callback = async (req: Request, res: Response) => {
     return res.status(400).json({ error: "Missing code or state." });
   }
 
+  let parsedState;
+  try {
+    parsedState = JSON.parse(state as string);
+  } catch (error) {
+    return res.status(400).json({ error: "Invalid state parameter." });
+  }
+
+  const { csrfToken, discordId } = parsedState;
+
+  if (!csrfToken || !discordId) {
+    return res.status(400).json({ error: "Missing CSRF token or discordId." });
+  }
+
   try {
     const tokenParams = {
       code: code as string,
@@ -41,11 +54,25 @@ export const callback = async (req: Request, res: Response) => {
       scope: "https://graph.microsoft.com/.default",
     };
 
-    const accessToken = await oauth2Client.getToken(tokenParams);
+    const accessTokenResponse = await oauth2Client.getToken(tokenParams);
+    const accessToken = accessTokenResponse.token.access_token;
 
-    res
-      .status(200)
-      .send("Successfully authenticated! You can now use the Discord server.");
+    const updateResponse = await fetch(`https://graph.microsoft.com/v1.0/me`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify({
+        businessPhones: [`${discordId}`], // PoC
+      }),
+    });
+
+    if (!updateResponse.ok) {
+      throw new Error("Failed to update user with discordId.");
+    }
+
+    res.status(200).send("Successfully authenticated and linked with Discord!");
   } catch (error) {
     console.error("Error during authentication callback:", error);
     res.status(500).json({ error: "Authentication failed." });
