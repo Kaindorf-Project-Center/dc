@@ -4,15 +4,16 @@ import {
   ButtonBuilder,
   ActionRowBuilder,
   ButtonStyle,
-  Interaction,
   MessageComponentInteraction,
   ChatInputCommandInteraction,
-  TextChannel,
 } from "discord.js";
 import { randomBytes } from "node:crypto";
 import { config } from "common";
 
-export async function handleAuthentication(member: GuildMember) {
+export async function handleAuthentication(
+  member: GuildMember,
+  interaction?: ChatInputCommandInteraction
+) {
   const dmChannel = await member.createDM();
   const state = randomBytes(16).toString("hex"); // For CSRF protection
   const authUrl = `https://login.microsoftonline.com/${
@@ -42,41 +43,95 @@ export async function handleAuthentication(member: GuildMember) {
     verifyButton
   );
 
-  await dmChannel.send({ embeds: [embed], components: [actionRow] });
+  let message;
+  if (interaction != null) {
+    message = await interaction.reply({
+      embeds: [embed],
+      components: [actionRow],
+      fetchReply: true,
+    });
+  } else {
+    message = await dmChannel.send({
+      embeds: [embed],
+      components: [actionRow],
+    });
+  }
 
-  const filter = (interaction: MessageComponentInteraction) =>
-    interaction.isButton() && interaction.customId === `verify-${member.id}`;
+  const filter = (i: MessageComponentInteraction) =>
+    i.isButton() && i.customId === `verify-${member.id}`;
 
   const collector = dmChannel.createMessageComponentCollector({
     filter,
-    time: 60000 * 5,
+    time: 60000 * 5, // timeout after 5 minutes
   });
 
-  collector.on("collect", async (interaction) => {
-    if (!interaction.isButton()) return;
-
-    await interaction.deferReply({ ephemeral: true });
+  collector.on("collect", async (buttonInteraction) => {
+    if (!buttonInteraction.isButton()) return;
 
     const backendUrl = `${config.BACKEND_BASE_URL}/verify/${member.id}`;
     try {
       const response = await fetch(backendUrl, { method: "POST" });
       if (response.ok) {
-        await interaction.followUp("You have been successfully verified! 🎉");
+        // Update the original message after successful verification
+        const successEmbed = new EmbedBuilder()
+          .setTitle("Verification Successful")
+          .setDescription("You have been successfully verified! 🎉")
+          .setColor("Green");
+
+        await message.edit({
+          embeds: [successEmbed],
+          components: [], // Remove the buttons
+        });
       } else {
         console.log(response);
-        await interaction.followUp(
-          "Verification failed. Please try again later."
-        );
+        const errorEmbed = new EmbedBuilder()
+          .setTitle("Verification failed.")
+          .setDescription("Please try again later.")
+          .setColor("Red");
+
+        await message.edit({
+          embeds: [errorEmbed], // Replace with timeout embed
+          components: [], // Remove the buttons
+        });
+        buttonInteraction.deferUpdate();
       }
     } catch (error) {
       console.error("Error verifying user:", error);
-      await interaction.followUp(
-        "An error occurred during verification. Please contact support."
-      );
+
+      const errorEmbed = new EmbedBuilder()
+        .setTitle("Verification failed.")
+        .setDescription("An error occurred during verification.")
+        .setColor("Red");
+
+      await message.edit({
+        embeds: [errorEmbed], // Replace with timeout embed
+        components: [], // Remove the buttons
+      });
+      buttonInteraction.deferred = true;
     }
   });
 
-  collector.on("end", () => {
-    console.log(`Collector for user ${member.id} ended.`);
+  collector.on("end", async (collected, reason) => {
+    if (reason === "time") {
+      try {
+        const timeoutEmbed = new EmbedBuilder()
+          .setTitle("Authentication Timed Out!")
+          .setDescription(
+            "You can trigger authentication manually with </authenticate:1327405925400711293>"
+          )
+          .setColor("Red");
+
+        await message.edit({
+          embeds: [timeoutEmbed], // Replace with timeout embed
+          components: [], // Remove the buttons
+        });
+
+        console.log(`Verification for user ${member.user.username} timed out!`);
+      } catch (error) {
+        console.error("Failed to edit the message:", error);
+      }
+    } else {
+      console.log(`Collector for user ${member.user.username} ended.`);
+    }
   });
 }
