@@ -18,7 +18,6 @@
 
           pre-commit
           act
-          nodejs_22
 
           bun
 
