@@ -6,6 +6,7 @@ const ConfigSchema = z.object({
   MICROSOFT_CLIENT_SECRET: z
     .string()
     .nonempty("MICROSOFT_CLIENT_SECRET is required"),
+  MICROSOFT_OBJECT_ID: z.string().nonempty("MICROSOFT_OBJECT_ID is required"),
   MICROSOFT_REDIRECT_URI: z
     .string()
     .url("MICROSOFT_REDIRECT_URI must be a valid URL"),

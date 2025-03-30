@@ -15,16 +15,28 @@ export async function handleAuthentication(
   interaction?: ChatInputCommandInteraction
 ) {
   const dmChannel = await member.createDM();
-  const state = randomBytes(16).toString("hex"); // For CSRF protection
+
+  // Generate a CSRF token
+  const csrfToken = randomBytes(16).toString("hex");
+
+  // Build the state payload including both the CSRF token and Discord ID
+  const statePayload = {
+    csrf: csrfToken,
+    discordId: member.id,
+  };
+
+  // Encode the state payload as a JSON string, then Base64 encode it
+  const encodedState = Buffer.from(JSON.stringify(statePayload)).toString(
+    "base64"
+  );
+
   const authUrl = `https://login.microsoftonline.com/${
     config.MICROSOFT_TENANT_ID
   }/oauth2/v2.0/authorize?client_id=${
     config.MICROSOFT_CLIENT_ID
   }&response_type=code&redirect_uri=${encodeURIComponent(
     config.MICROSOFT_REDIRECT_URI
-  )}&response_mode=query&scope=https%3A%2F%2Fgraph.microsoft.com%2F.default&state=${state}&discordId=${
-    member.id
-  }`;
+  )}&response_mode=query&scope=https%3A%2F%2Fgraph.microsoft.com%2F.default&state=${encodedState}`;
 
   const embed = new EmbedBuilder()
     .setTitle("Authentication Required")
@@ -70,8 +82,10 @@ export async function handleAuthentication(
 
     const backendUrl = `${config.BACKEND_BASE_URL}/verify/${member.id}`;
     try {
-      const response = await fetch(backendUrl, { method: "POST" });
+      const response: any = await fetch(backendUrl, { method: "GET" });
       if (response.ok) {
+        console.log(response.user);
+
         // Update the original message after successful verification
         const successEmbed = new EmbedBuilder()
           .setTitle("Verification Successful")
@@ -82,6 +96,8 @@ export async function handleAuthentication(
           embeds: [successEmbed],
           components: [], // Remove the buttons
         });
+
+        collector.stop("verified");
       } else {
         console.log(response);
         const errorEmbed = new EmbedBuilder()
@@ -94,6 +110,8 @@ export async function handleAuthentication(
           components: [], // Remove the buttons
         });
         buttonInteraction.deferUpdate();
+
+        collector.stop("failed");
       }
     } catch (error) {
       console.error("Error verifying user:", error);

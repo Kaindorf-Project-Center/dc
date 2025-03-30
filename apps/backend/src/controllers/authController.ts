@@ -1,53 +1,98 @@
 import { Request, Response } from "express";
-import { AuthorizationCode } from "simple-oauth2";
+import { ConfidentialClientApplication, Configuration } from "@azure/msal-node";
 import { config } from "common";
-
-const oauth2Client = new AuthorizationCode({
-  client: {
-    id: config.MICROSOFT_CLIENT_ID,
-    secret: config.MICROSOFT_CLIENT_SECRET,
-  },
-  auth: {
-    tokenHost: "https://login.microsoftonline.com",
-    tokenPath: `/${config.MICROSOFT_TENANT_ID}/oauth2/v2.0/token`,
-    authorizePath: `/${config.MICROSOFT_TENANT_ID}/oauth2/v2.0/authorize`,
-  },
-});
+import { createExtensionAttributeIfNotExists } from "../helpers/createExtensionAttributeIfNotExists";
+import { msalClient } from "../server";
+import { setUserDiscordId } from "../helpers/setUserDiscordId";
+import { getAppToken } from "../helpers/tokens";
 
 // Authenticate (OAuth redirect)
-export const authenticate = (req: Request, res: Response) => {
-  const state = Math.random().toString(36).substring(7);
-  const authorizationUri = oauth2Client.authorizeURL({
-    redirect_uri: config.MICROSOFT_REDIRECT_URI,
-    scope: "https://graph.microsoft.com/.default",
-    state,
-  });
+export const authenticate = async (req: Request, res: Response) => {
+  const state = Math.random().toString(36).substring(7); // Generate a random state for security
+  const authCodeUrlParams = {
+    scopes: ["https://graph.microsoft.com/.default"],
+    redirectUri: config.MICROSOFT_REDIRECT_URI,
+    state, // Add the state to prevent CSRF attacks
+  };
 
-  res.redirect(authorizationUri);
+  try {
+    const authCodeUrl = await msalClient.getAuthCodeUrl(authCodeUrlParams);
+
+    res.redirect(authCodeUrl); // Redirect the user to Microsoft login
+  } catch (error) {
+    console.error("Error generating authentication URL:", error);
+    res.status(500).send("Failed to generate authentication URL.");
+  }
 };
 
 // Callback (handle OAuth response)
 export const callback = async (req: Request, res: Response) => {
-  const { code, state } = req.query;
+  const { code, state: encodedState } = req.query;
 
-  if (!code || !state) {
+  if (!code || !encodedState) {
     return res.status(400).json({ error: "Missing code or state." });
   }
 
+  let decodedState: { csrf: string; discordId: string };
   try {
-    const tokenParams = {
+    decodedState = JSON.parse(
+      Buffer.from(encodedState as string, "base64").toString("utf-8")
+    );
+  } catch (err) {
+    console.error("State decoding failed:", err);
+    return res.status(400).json({ error: "Invalid state parameter." });
+  }
+
+  // Retrieve the CSRF token and Discord ID from the decoded state
+  const { csrf, discordId } = decodedState;
+  console.log("CSRF Token:", csrf);
+  console.log("Discord ID:", discordId);
+
+  try {
+    const tokenRequest = {
       code: code as string,
-      redirect_uri: config.MICROSOFT_REDIRECT_URI,
-      scope: "https://graph.microsoft.com/.default",
+      scopes: ["https://graph.microsoft.com/.default"],
+      redirectUri: config.MICROSOFT_REDIRECT_URI,
     };
 
-    const accessToken = await oauth2Client.getToken(tokenParams);
+    const response = await msalClient.acquireTokenByCode(tokenRequest);
+    const accessToken = response?.accessToken;
+
+    if (!accessToken) {
+      throw new Error("Failed to acquire access token.");
+    }
+
+    // Step 2: Get the authenticated user's profile
+    const userResponse = await fetch("https://graph.microsoft.com/v1.0/me", {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!userResponse.ok) {
+      throw new Error(
+        `Failed to fetch user data: ${await userResponse.text()}`
+      );
+    }
+
+    const userData = await userResponse.json();
+    const userId = userData.id;
+    console.log("Authenticated user ID:", userId);
+
+    await setUserDiscordId(await getAppToken(msalClient), userId, discordId);
 
     res
-      .status(200)
-      .send("Successfully authenticated! You can now use the Discord server.");
-  } catch (error) {
-    console.error("Error during authentication callback:", error);
-    res.status(500).json({ error: "Authentication failed." });
+      .status(303)
+      .redirect("https://discord.com/channels/@me/1327542033954639933");
+  } catch (error: any) {
+    if (error.message == "userId already authenticated") {
+      res
+        .status(303)
+        .redirect("https://discord.com/channels/@me/1327542033954639933");
+    } else {
+      console.error("Error during authentication callback:", error);
+      res.status(500).json({ error: "Authentication failed." });
+    }
   }
 };
