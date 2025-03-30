@@ -83,10 +83,16 @@ export const callback = async (req: Request, res: Response) => {
     await setUserDiscordId(await getAppToken(msalClient), userId, discordId);
 
     res
-      .status(200)
-      .send("Successfully authenticated! You can now use the Discord server.");
-  } catch (error) {
-    console.error("Error during authentication callback:", error);
-    res.status(500).json({ error: "Authentication failed." });
+      .status(303)
+      .redirect("https://discord.com/channels/@me/1327542033954639933");
+  } catch (error: any) {
+    if (error.message == "userId already authenticated") {
+      res
+        .status(303)
+        .redirect("https://discord.com/channels/@me/1327542033954639933");
+    } else {
+      console.error("Error during authentication callback:", error);
+      res.status(500).json({ error: "Authentication failed." });
+    }
   }
 };

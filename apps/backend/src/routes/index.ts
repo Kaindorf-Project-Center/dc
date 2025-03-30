@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { authenticate, callback } from "../controllers/authController";
-import { verify } from "../controllers/verify";
+import { verify } from "../controllers/verifyController";
 
 export const router = Router();
 

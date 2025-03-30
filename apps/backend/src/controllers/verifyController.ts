@@ -23,7 +23,6 @@ export const verify = async (req: Request, res: Response) => {
       return res.status(500).json({ error: "Failed to acquire access token." });
     }
 
-    // Build the filter query to search for a user with the given Discord ID
     const filterQuery = `extension_${clientIdNoDashes}_discordId eq '${discordId}'`;
     const searchUrl = `https://graph.microsoft.com/v1.0/users?$filter=${encodeURIComponent(
       filterQuery
@@ -43,11 +42,11 @@ export const verify = async (req: Request, res: Response) => {
     }
 
     const searchResults = await searchResponse.json();
-    console.log(searchResults);
 
     if (searchResults.value && searchResults.value.length > 0) {
       // User found – they are authenticated (i.e. have completed the OAuth flow)
-      return res.status(200).json({
+      console.log(searchResults.value[0]);
+      return res.json({
         message: "User is authenticated",
         user: searchResults.value[0],
       });
