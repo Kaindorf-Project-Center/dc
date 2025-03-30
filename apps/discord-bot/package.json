@@ -7,7 +7,8 @@
         "build": "tsc"
     },
     "dependencies": {
+        "common": "workspace:*",
         "discord.js": "^14.0.0",
-        "common": "workspace:*"
+        "yaml": "^2.7.0"
     }
 }

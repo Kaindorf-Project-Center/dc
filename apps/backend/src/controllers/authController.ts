@@ -6,13 +6,12 @@ import { msalClient } from "../server";
 import { setUserDiscordId } from "../helpers/setUserDiscordId";
 import { getAppToken } from "../helpers/tokens";
 
-// Authenticate (OAuth redirect)
 export const authenticate = async (req: Request, res: Response) => {
-  const state = Math.random().toString(36).substring(7); // Generate a random state for security
+  const state = Math.random().toString(36).substring(7);
   const authCodeUrlParams = {
     scopes: ["https://graph.microsoft.com/.default"],
     redirectUri: config.MICROSOFT_REDIRECT_URI,
-    state, // Add the state to prevent CSRF attacks
+    state,
   };
 
   try {

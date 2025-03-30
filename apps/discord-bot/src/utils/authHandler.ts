@@ -6,9 +6,13 @@ import {
   ButtonStyle,
   MessageComponentInteraction,
   ChatInputCommandInteraction,
+  Role,
 } from "discord.js";
 import { randomBytes } from "node:crypto";
 import { config } from "common";
+
+import fs from "fs";
+import YAML from "yaml";
 
 export async function handleAuthentication(
   member: GuildMember,
@@ -84,7 +88,52 @@ export async function handleAuthentication(
     try {
       const response: any = await fetch(backendUrl, { method: "GET" });
       if (response.ok) {
-        console.log(response.user);
+        const user = (await response.json()).user;
+
+        const userShorthand: string = user.userPrincipalName.split("@")[0];
+        console.log(userShorthand);
+        const userShorthandMatch = userShorthand.match(
+          /[a-z]{5}([abcdnmzy])(\d\d)/
+        );
+        if (userShorthandMatch == null) {
+          throw new Error("userShorthand not matching student pattern");
+        }
+        console.log(userShorthandMatch);
+
+        const letter = userShorthandMatch[1];
+
+        const mapping = YAML.parse(
+          fs.readFileSync(
+            "./apps/discord-bot/shorthand-role-mapping.yaml",
+            "utf8"
+          )
+        );
+        if (!(letter in mapping)) {
+          throw new Error("letter not mappable");
+        }
+
+        const department = mapping[letter].department;
+        const yarak = mapping[letter].longname + userShorthandMatch[2];
+
+        const newNickname = user.givenName + user.surname;
+
+        let deptRole: Role = member.guild.roles.cache.find(
+          (r) => r.name === department
+        )!;
+        if (deptRole == null) {
+          deptRole = await member.guild.roles.create({
+            name: department,
+          });
+        }
+        await member.roles.add(deptRole);
+
+        let classRole = member.guild.roles.cache.find((r) => r.name === yarak);
+        if (classRole == null) {
+          classRole = await member.guild.roles.create({
+            name: yarak,
+          });
+        }
+        await member.roles.add(classRole);
 
         // Update the original message after successful verification
         const successEmbed = new EmbedBuilder()
