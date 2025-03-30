@@ -1,0 +1,24 @@
+a: 
+ longname:  'AHIF'
+ department:  'Informatik'
+b: 
+ longname:    'BHIF'
+ department:  'Informatik'
+c: 
+ longname:    'CHIF'
+ department:  'Informatik'
+d: 
+ longname:    'DHIF'
+ department:  'Informatik'
+m: 
+  longname:   'AHME'
+  department: 'Mechatronik'
+n: 
+ longname:    'BHME'
+ department:  'Robotik'
+y:
+ longname:    'BHMBA'
+ department:  'Automatisierung'
+z:
+ longname:    'AHMBA'
+ department:  'Automatisierung'
