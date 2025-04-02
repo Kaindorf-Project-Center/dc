@@ -5,6 +5,7 @@ import { createExtensionAttributeIfNotExists } from "../helpers/createExtensionA
 import { msalClient } from "../server";
 import { setUserDiscordId } from "../helpers/setUserDiscordId";
 import { getAppToken } from "../helpers/tokens";
+import { tryCatch } from "common/src/tryCatch";
 
 export const authenticate = async (req: Request, res: Response) => {
   const state = Math.random().toString(36).substring(7);
@@ -79,7 +80,9 @@ export const callback = async (req: Request, res: Response) => {
     const userId = userData.id;
     console.log("Authenticated user ID:", userId);
 
-    await setUserDiscordId(await getAppToken(msalClient), userId, discordId);
+    const appToken = await tryCatch(getAppToken(msalClient));
+    if (appToken.error != null) return;
+    await setUserDiscordId(appToken.data, userId, discordId);
 
     res
       .status(303)
