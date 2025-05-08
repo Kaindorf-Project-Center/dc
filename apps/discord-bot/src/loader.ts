@@ -1,15 +1,15 @@
-import { Client, Collection } from "discord.js";
-import type { Event } from "./interfaces/Event";
-import fs from "fs";
-import path from "path";
-import { ExtendedClient } from "./interfaces/ExtendedClient";
-import { Command } from "./interfaces/Command";
+import { Client, Collection } from 'discord.js';
+import type { Event } from './interfaces/Event';
+import fs from 'fs';
+import path from 'path';
+import { ExtendedClient } from './interfaces/ExtendedClient';
+import { Command } from './interfaces/Command';
 
 export const loadEvents = (client: Client) => {
-  const eventsPath = path.join(__dirname, "events");
+  const eventsPath = path.join(__dirname, 'events');
   const eventFiles = fs
     .readdirSync(eventsPath)
-    .filter((file) => file.endsWith(".ts"));
+    .filter((file) => file.endsWith('.ts'));
 
   for (const file of eventFiles) {
     const filePath = path.join(eventsPath, file);
@@ -24,13 +24,13 @@ export const loadEvents = (client: Client) => {
 
 export const loadCommands = (): Collection<string, Command> => {
   // TODO: write directly to extendendclient instead of returning collection
-  console.log("[INFO] loading commands...");
-  const commandsPath = path.join(__dirname, "commands");
+  console.log('[INFO] loading commands...');
+  const commandsPath = path.join(__dirname, 'commands');
   const commands = new Collection<string, Command>();
 
   const commandFiles = fs
     .readdirSync(commandsPath)
-    .filter((file) => file.endsWith(".ts"));
+    .filter((file) => file.endsWith('.ts'));
 
   for (const file of commandFiles) {
     const filePath = path.join(commandsPath, file);

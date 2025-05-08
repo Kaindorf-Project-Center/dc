@@ -1,9 +1,9 @@
-import express, { Request, Response, NextFunction } from "express";
-import { router } from "./routes/index";
-import { ConfidentialClientApplication, Configuration } from "@azure/msal-node";
-import { config } from "common";
-import { createExtensionAttributeIfNotExists } from "./helpers/createExtensionAttributeIfNotExists";
-import { getAppToken } from "./helpers/tokens";
+import express, { Request, Response, NextFunction } from 'express';
+import { router } from './routes/index';
+import { ConfidentialClientApplication, Configuration } from '@azure/msal-node';
+import { config } from 'common';
+import { createExtensionAttributeIfNotExists } from './helpers/createExtensionAttributeIfNotExists';
+import { getAppToken } from './helpers/tokens';
 
 const msalConfig: Configuration = {
   auth: {
@@ -16,17 +16,17 @@ const msalConfig: Configuration = {
 export const msalClient = new ConfidentialClientApplication(msalConfig);
 
 async function initializeApp() {
-  console.log("Initializing application...");
+  console.log('Initializing application...');
 
-  try {
-    const accessToken = await getAppToken(msalClient);
+  const accessToken = await getAppToken(msalClient);
 
-    if (await createExtensionAttributeIfNotExists(accessToken)) {
-      console.log("Application initialized successfully.");
-    }
-  } catch (e: any) {
-    console.error(e.message);
-    process.exit(1);
+  if (accessToken.error) {
+    console.error(accessToken.error);
+    return process.exit(1);
+  }
+
+  if ((await createExtensionAttributeIfNotExists(accessToken.data)) == null) {
+    return process.exit(1);
   }
 
   const app = express();
@@ -34,12 +34,7 @@ async function initializeApp() {
 
   app.use(express.json());
 
-  app.use("/", router);
-
-  app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
-    console.error(err.stack);
-    res.status(500).send("Something went wrong!");
-  });
+  app.use('/', router);
 
   app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
