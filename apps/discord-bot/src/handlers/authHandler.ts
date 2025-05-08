@@ -2,19 +2,19 @@ import {
   GuildMember,
   MessageComponentInteraction,
   ChatInputCommandInteraction,
-} from "discord.js";
-import { randomBytes } from "crypto";
-import { config } from "common";
-import { createVerifyButton, createActionRow } from "../utils/authButtons";
-import { getMappingForLetter } from "../utils/mapping";
-import { tryCatch, Result } from "common/src/tryCatch";
+} from 'discord.js';
+import { randomBytes } from 'crypto';
+import { config } from 'common';
+import { createVerifyButton, createActionRow } from '../utils/authButtons';
+import { getMappingForLetter } from '../utils/mapping';
+import { tryCatch, Result } from 'common/src/tryCatch';
 import {
   createAuthEmbed,
   createErrorEmbed,
   createSuccessEmbed,
   createTimeoutEmbed,
-} from "../utils/authEmbeds";
-import { getOrCreateRole } from "../utils/getOrCreateRole";
+} from '../utils/authEmbeds';
+import { getOrCreateRole } from '../utils/getOrCreateRole';
 
 export async function handleAuthentication(
   member: GuildMember,
@@ -28,10 +28,10 @@ export async function handleAuthentication(
   const dmChannel = dmChannelResult.data;
 
   // CSRF-Token und Zustandspayload erzeugen
-  const csrfToken = randomBytes(16).toString("hex");
+  const csrfToken = randomBytes(16).toString('hex');
   const statePayload = { csrf: csrfToken, discordId: member.id };
   const encodedState = Buffer.from(JSON.stringify(statePayload)).toString(
-    "base64"
+    'base64'
   );
 
   // Authentifizierungs-URL erstellen
@@ -80,7 +80,7 @@ export async function handleAuthentication(
     const verifyButtonResult = createVerifyButton(member.id);
     if (verifyButtonResult.error) {
       console.error(
-        "Fehler beim Erzeugen des Verify-Buttons:",
+        'Fehler beim Erzeugen des Verify-Buttons:',
         verifyButtonResult.error
       );
       return;
@@ -88,7 +88,7 @@ export async function handleAuthentication(
     const actionRowResult = createActionRow(verifyButtonResult.data);
     if (actionRowResult.error) {
       console.error(
-        "Fehler beim Erzeugen der ActionRow:",
+        'Fehler beim Erzeugen der ActionRow:',
         actionRowResult.error
       );
       return;
@@ -98,7 +98,7 @@ export async function handleAuthentication(
     );
     if (editResult.error) {
       console.error(
-        "Fehler beim Aktualisieren der Nachricht:",
+        'Fehler beim Aktualisieren der Nachricht:',
         editResult.error
       );
     }
@@ -112,11 +112,11 @@ export async function handleAuthentication(
     time: 60000 * 5,
   });
 
-  collector.on("collect", async (buttonInteraction) => {
+  collector.on('collect', async (buttonInteraction) => {
     if (!buttonInteraction.isButton()) return;
 
     const backendUrl = `${config.BACKEND_BASE_URL}/verify/${member.id}`;
-    const fetchResult = await tryCatch(fetch(backendUrl, { method: "GET" }));
+    const fetchResult = await tryCatch(fetch(backendUrl, { method: 'GET' }));
     if (fetchResult.error || !fetchResult.data.ok) {
       const errorEmbedResult = createErrorEmbed();
       if (!errorEmbedResult.error) {
@@ -125,7 +125,7 @@ export async function handleAuthentication(
         );
       }
       buttonInteraction.deferUpdate();
-      collector.stop("failed");
+      collector.stop('failed');
       return;
     }
 
@@ -138,38 +138,38 @@ export async function handleAuthentication(
         );
       }
       buttonInteraction.deferUpdate();
-      collector.stop("failed");
+      collector.stop('failed');
       return;
     }
     const user = jsonResult.data.user;
 
-    const userShorthand: string = user.userPrincipalName.split("@")[0];
+    const userShorthand: string = user.userPrincipalName.split('@')[0];
     const userShorthandMatch = userShorthand.match(
       /[a-z]{5}([abcdnmzy])(\d\d)/
     );
     if (!userShorthandMatch) {
-      console.error("User-Shorthand entspricht nicht dem erwarteten Muster.");
+      console.error('User-Shorthand entspricht nicht dem erwarteten Muster.');
       const errorEmbedResult = createErrorEmbed();
       if (!errorEmbedResult.error) {
         await tryCatch(
           message.edit({ embeds: [errorEmbedResult.data], components: [] })
         );
       }
-      collector.stop("failed");
+      collector.stop('failed');
       return;
     }
 
     const letter = userShorthandMatch[1];
     const mappingResult = await getMappingForLetter(letter);
     if (mappingResult.error) {
-      console.error("Mapping-Fehler:", mappingResult.error);
+      console.error('Mapping-Fehler:', mappingResult.error);
       const errorEmbedResult = createErrorEmbed();
       if (!errorEmbedResult.error) {
         await tryCatch(
           message.edit({ embeds: [errorEmbedResult.data], components: [] })
         );
       }
-      collector.stop("failed");
+      collector.stop('failed');
       return;
     }
     const mapping = mappingResult.data;
@@ -180,7 +180,7 @@ export async function handleAuthentication(
     const deptRoleResult = await getOrCreateRole(member, department);
     if (deptRoleResult.error) {
       console.error(
-        "Fehler beim Zuweisen der Abteilungsrolle:",
+        'Fehler beim Zuweisen der Abteilungsrolle:',
         deptRoleResult.error
       );
       const errorEmbedResult = createErrorEmbed();
@@ -189,7 +189,7 @@ export async function handleAuthentication(
           message.edit({ embeds: [errorEmbedResult.data], components: [] })
         );
       }
-      collector.stop("failed");
+      collector.stop('failed');
       return;
     }
     const addDeptRoleResult = await tryCatch(
@@ -197,7 +197,7 @@ export async function handleAuthentication(
     );
     if (addDeptRoleResult.error) {
       console.error(
-        "Fehler beim Hinzufügen der Abteilungsrolle:",
+        'Fehler beim Hinzufügen der Abteilungsrolle:',
         addDeptRoleResult.error
       );
     }
@@ -205,7 +205,7 @@ export async function handleAuthentication(
     const classRoleResult = await getOrCreateRole(member, yarak);
     if (classRoleResult.error) {
       console.error(
-        "Fehler beim Zuweisen der Klassenrolle:",
+        'Fehler beim Zuweisen der Klassenrolle:',
         classRoleResult.error
       );
       const errorEmbedResult = createErrorEmbed();
@@ -214,7 +214,7 @@ export async function handleAuthentication(
           message.edit({ embeds: [errorEmbedResult.data], components: [] })
         );
       }
-      collector.stop("failed");
+      collector.stop('failed');
       return;
     }
     const addClassRoleResult = await tryCatch(
@@ -222,17 +222,17 @@ export async function handleAuthentication(
     );
     if (addClassRoleResult.error) {
       console.error(
-        "Fehler beim Hinzufügen der Klassenrolle:",
+        'Fehler beim Hinzufügen der Klassenrolle:',
         addClassRoleResult.error
       );
     }
 
     // Nickname aktualisieren
-    const newNickname = `${user.givenName}${user.surname}`;
+    const newNickname = `${user.givenName} ${user.surname}`;
     const setNicknameResult = await tryCatch(member.setNickname(newNickname));
     if (setNicknameResult.error) {
       console.error(
-        "Fehler beim Setzen des Nicknames:",
+        'Fehler beim Setzen des Nicknames:',
         setNicknameResult.error
       );
     }
@@ -240,7 +240,7 @@ export async function handleAuthentication(
     const successEmbedResult = createSuccessEmbed();
     if (successEmbedResult.error) {
       console.error(
-        "Fehler beim Erzeugen des Success-Embeds:",
+        'Fehler beim Erzeugen des Success-Embeds:',
         successEmbedResult.error
       );
     } else {
@@ -248,15 +248,15 @@ export async function handleAuthentication(
         message.edit({ embeds: [successEmbedResult.data], components: [] })
       );
     }
-    collector.stop("verified");
+    collector.stop('verified');
   });
 
-  collector.on("end", async (_collected, reason) => {
-    if (reason === "time") {
+  collector.on('end', async (_collected, reason) => {
+    if (reason === 'time') {
       const timeoutEmbedResult = createTimeoutEmbed();
       if (timeoutEmbedResult.error) {
         console.error(
-          "Fehler beim Erzeugen des Timeout-Embeds:",
+          'Fehler beim Erzeugen des Timeout-Embeds:',
           timeoutEmbedResult.error
         );
       } else {

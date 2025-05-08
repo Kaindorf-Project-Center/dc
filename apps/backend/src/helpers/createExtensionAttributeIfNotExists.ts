@@ -1,6 +1,6 @@
-import { ExtensionProperty } from "@microsoft/microsoft-graph-types";
-import { config } from "common";
-
+import { ExtensionProperty } from '@microsoft/microsoft-graph-types';
+import { config } from 'common';
+//TODO: error handling
 export async function createExtensionAttributeIfNotExists(accessToken: string) {
   try {
     console.log("Checking if extension attribute 'discordId' exists...");
@@ -9,10 +9,10 @@ export async function createExtensionAttributeIfNotExists(accessToken: string) {
     const checkResponse = await fetch(
       `https://graph.microsoft.com/v1.0/applications/${config.MICROSOFT_OBJECT_ID}/extensionProperties`,
       {
-        method: "GET",
+        method: 'GET',
         headers: {
           Authorization: `Bearer ${accessToken}`,
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
       }
     );
@@ -20,7 +20,7 @@ export async function createExtensionAttributeIfNotExists(accessToken: string) {
     const checkData = await checkResponse.json();
 
     const existingAttribute = checkData.value?.find((attr: ExtensionProperty) =>
-      attr.name?.includes("discordId")
+      attr.name?.includes('discordId')
     );
 
     if (existingAttribute) {
@@ -34,23 +34,23 @@ export async function createExtensionAttributeIfNotExists(accessToken: string) {
     const createResponse = await fetch(
       `https://graph.microsoft.com/v1.0/applications/${config.MICROSOFT_OBJECT_ID}/extensionProperties`,
       {
-        method: "POST",
+        method: 'POST',
         headers: {
           Authorization: `Bearer ${accessToken}`,
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          name: "discordId",
-          dataType: "String",
-          targetObjects: ["User"],
+          name: 'discordId',
+          dataType: 'String',
+          targetObjects: ['User'],
         }),
       }
     );
 
     const createData = await createResponse.json();
-    console.log("Created Extension Attribute:", createData);
+    console.log('Created Extension Attribute:', createData);
     return createData;
   } catch (error) {
-    throw new Error("Failed to find or create Extension Attribute.");
+    throw new Error('Failed to find or create Extension Attribute.');
   }
 }

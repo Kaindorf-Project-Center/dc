@@ -1,5 +1,5 @@
-import { GuildMember, Role } from "discord.js";
-import { tryCatch, Result } from "common/src/tryCatch";
+import { GuildMember, Role } from 'discord.js';
+import { tryCatch, Result } from 'common/src/tryCatch';
 
 export async function getOrCreateRole(
   member: GuildMember,

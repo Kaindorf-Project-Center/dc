@@ -1,16 +1,16 @@
-import { config } from "common";
-import { Request, Response } from "express";
-import { msalClient } from "../server";
+import { config } from 'common';
+import { Request, Response } from 'express';
+import { msalClient } from '../server';
 
 export const verify = async (req: Request, res: Response) => {
   const { discordId } = req.params;
 
   // Remove hyphens from the client ID for proper extension attribute naming
-  const clientIdNoDashes = config.MICROSOFT_CLIENT_ID.replace(/-/g, "");
+  const clientIdNoDashes = config.MICROSOFT_CLIENT_ID.replace(/-/g, '');
 
   // Acquire an application token (client credentials flow)
   const tokenRequest = {
-    scopes: ["https://graph.microsoft.com/.default"],
+    scopes: ['https://graph.microsoft.com/.default'],
   };
 
   try {
@@ -20,7 +20,7 @@ export const verify = async (req: Request, res: Response) => {
     const accessToken = tokenResponse?.accessToken;
 
     if (!accessToken) {
-      return res.status(500).json({ error: "Failed to acquire access token." });
+      return res.status(500).json({ error: 'Failed to acquire access token.' });
     }
 
     const filterQuery = `extension_${clientIdNoDashes}_discordId eq '${discordId}'`;
@@ -29,10 +29,10 @@ export const verify = async (req: Request, res: Response) => {
     )}`;
 
     const searchResponse = await fetch(searchUrl, {
-      method: "GET",
+      method: 'GET',
       headers: {
         Authorization: `Bearer ${accessToken}`,
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
       },
     });
 
@@ -47,17 +47,17 @@ export const verify = async (req: Request, res: Response) => {
       // User found – they are authenticated (i.e. have completed the OAuth flow)
       console.log(searchResults.value[0]);
       return res.json({
-        message: "User is authenticated",
+        message: 'User is authenticated',
         user: searchResults.value[0],
       });
     } else {
       // No user found with that Discord ID
       return res
         .status(404)
-        .json({ message: "User not found or not authenticated." });
+        .json({ message: 'User not found or not authenticated.' });
     }
   } catch (error) {
-    console.error("Error verifying user:", error);
-    return res.status(500).json({ error: "Internal server error." });
+    console.error('Error verifying user:', error);
+    return res.status(500).json({ error: 'Internal server error.' });
   }
 };

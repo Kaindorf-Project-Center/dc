@@ -1,7 +1,7 @@
-import { config } from "common";
-import { REST, Routes } from "discord.js";
-import { ExtendedClient } from "./interfaces/ExtendedClient";
-import { loadCommands } from "./loader";
+import { config } from 'common';
+import { REST, Routes } from 'discord.js';
+import { ExtendedClient } from './interfaces/ExtendedClient';
+import { loadCommands } from './loader';
 
 // and deploy your commands!
 export const registerCommands = async (extendedClient: ExtendedClient) => {

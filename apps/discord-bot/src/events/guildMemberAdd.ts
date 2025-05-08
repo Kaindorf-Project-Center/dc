@@ -1,6 +1,6 @@
-import { GuildMember, Events } from "discord.js";
-import { handleAuthentication } from "../handlers/authHandler"; // Assuming the function is saved in utils/authHandler
-import { Event } from "../interfaces/Event";
+import { GuildMember, Events } from 'discord.js';
+import { handleAuthentication } from '../handlers/authHandler'; // Assuming the function is saved in utils/authHandler
+import { Event } from '../interfaces/Event';
 
 const event: Event<typeof Events.GuildMemberAdd> = {
   name: Events.GuildMemberAdd,

@@ -1,9 +1,9 @@
 // Require the necessary discord.js classes
-import { Client, Collection, GatewayIntentBits } from "discord.js";
-import { loadCommands, loadEvents } from "./loader";
-import { config } from "common";
-import { Command } from "./interfaces/Command";
-import { ExtendedClient } from "./interfaces/ExtendedClient";
+import { Client, Collection, GatewayIntentBits } from 'discord.js';
+import { loadCommands, loadEvents } from './loader';
+import { config } from 'common';
+import { Command } from './interfaces/Command';
+import { ExtendedClient } from './interfaces/ExtendedClient';
 
 // Create a new client instance
 const client = new Client({

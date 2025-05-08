@@ -1,5 +1,5 @@
-import { ButtonBuilder, ButtonStyle, ActionRowBuilder } from "discord.js";
-import { Result } from "common/src/tryCatch";
+import { ButtonBuilder, ButtonStyle, ActionRowBuilder } from 'discord.js';
+import { Result } from 'common/src/tryCatch';
 
 export function createVerifyButton(
   memberId: string
@@ -7,7 +7,7 @@ export function createVerifyButton(
   try {
     const button = new ButtonBuilder()
       .setCustomId(`verify-${memberId}`)
-      .setLabel("Verify")
+      .setLabel('Verify')
       .setStyle(ButtonStyle.Primary);
     return { data: button, error: null };
   } catch (err) {
