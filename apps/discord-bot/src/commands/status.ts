@@ -1,19 +1,23 @@
 import {
   ChatInputCommandInteraction,
+  EmbedBuilder,
   InteractionContextType,
+  MessageFlags,
+  SeparatorBuilder,
   SlashCommandBuilder,
+  TextDisplayBuilder,
 } from 'discord.js';
-import { handleAuthentication } from '../handlers/authHandler';
 import { Command } from '../interfaces/Command';
 import { config } from 'common';
-import { tryCatch, Result } from 'common/src/tryCatch';
+import { tryCatch } from 'common/src/tryCatch';
+import { handleStatus } from '../handlers/statusHandler';
 
-const authenticateCommand: Command = {
+const StatusCommand: Command = {
   data: new SlashCommandBuilder()
-    .setName('authenticate')
-    .setContexts(InteractionContextType.BotDM)
-    .setDescription('Startet manuell den Authentifizierungsprozess.'),
-  async execute(interaction: ChatInputCommandInteraction): Promise<void> {
+    .setName('status')
+    .setDescription('Get the status')
+    .setContexts(InteractionContextType.BotDM),
+  async execute(interaction: ChatInputCommandInteraction) {
     const guild = interaction.client.guilds.cache.get(config.GUILD_ID);
 
     if (guild == null) {
@@ -30,8 +34,9 @@ const authenticateCommand: Command = {
       );
       return;
     }
-    await handleAuthentication(memberResult.data, interaction);
+
+    await handleStatus(memberResult.data, interaction);
   },
 };
 
-export default authenticateCommand;
+export default StatusCommand;

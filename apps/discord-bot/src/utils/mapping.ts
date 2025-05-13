@@ -2,14 +2,14 @@ import { promises as fsPromises } from 'fs';
 import YAML from 'yaml';
 import { tryCatch, Result } from 'common/src/tryCatch';
 
-export interface Mapping {
+export interface DepartmentDetails {
   department: string;
   longname: string;
 }
 
 export async function getMappingForLetter(
   letter: string
-): Promise<Result<Mapping, Error>> {
+): Promise<Result<DepartmentDetails, Error>> {
   const fileResult = await tryCatch(
     fsPromises.readFile(
       './apps/discord-bot/shorthand-role-mapping.yaml',
@@ -29,4 +29,53 @@ export async function getMappingForLetter(
   } catch (err) {
     return { data: null, error: err as Error };
   }
+}
+
+export async function getAllDepartments(
+  departmentMap: Map<string, DepartmentDetails>
+): Promise<Result<string[], Error>> {
+  const departments = Array.from(departmentMap.values()).map(
+    (entry) => entry.department
+  );
+
+  const uniqueDepartments = Array.from(new Set(departments));
+
+  return { data: uniqueDepartments, error: null };
+}
+
+export async function getAllPostfixes(
+  departmentMap: Map<string, DepartmentDetails>
+): Promise<Result<string[], Error>> {
+  const longnames = Array.from(departmentMap.values()).map(
+    (entry) => entry.longname
+  );
+
+  return { data: longnames, error: null };
+}
+
+export async function parseYamlToMap(): Promise<
+  Result<Map<string, DepartmentDetails>, Error>
+> {
+  const fileResult = await tryCatch(
+    fsPromises.readFile(
+      './apps/discord-bot/shorthand-role-mapping.yaml',
+      'utf8'
+    )
+  );
+
+  if (fileResult.error) {
+    return { data: null, error: fileResult.error };
+  }
+
+  const parsedData: Record<string, DepartmentDetails> = YAML.parse(
+    fileResult.data
+  );
+
+  const resultMap = new Map<string, DepartmentDetails>();
+
+  Object.entries(parsedData).forEach(([key, value]) => {
+    resultMap.set(key, value);
+  });
+
+  return { data: resultMap, error: null };
 }

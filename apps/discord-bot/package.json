@@ -8,7 +8,7 @@
     },
     "dependencies": {
         "common": "workspace:*",
-        "discord.js": "^14.0.0",
+        "discord.js": "^14.19.3",
         "yaml": "^2.7.0"
     }
 }

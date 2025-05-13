@@ -45,7 +45,6 @@ export const verify = async (req: Request, res: Response) => {
 
     if (searchResults.value && searchResults.value.length > 0) {
       // User found – they are authenticated (i.e. have completed the OAuth flow)
-      console.log(searchResults.value[0]);
       return res.json({
         message: 'User is authenticated',
         user: searchResults.value[0],

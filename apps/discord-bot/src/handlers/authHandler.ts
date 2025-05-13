@@ -5,7 +5,11 @@ import {
 } from 'discord.js';
 import { randomBytes } from 'crypto';
 import { config } from 'common';
-import { createVerifyButton, createActionRow } from '../utils/authButtons';
+import {
+  createVerifyButton,
+  createActionRow,
+  createAuthButton,
+} from '../utils/authButtons';
 import { getMappingForLetter } from '../utils/mapping';
 import { tryCatch, Result } from 'common/src/tryCatch';
 import {
@@ -18,7 +22,7 @@ import { getOrCreateRole } from '../utils/getOrCreateRole';
 
 export async function handleAuthentication(
   member: GuildMember,
-  interaction?: ChatInputCommandInteraction
+  interaction: ChatInputCommandInteraction
 ): Promise<Result<void, Error>> {
   // DM-Channel erstellen
   const dmChannelResult = await tryCatch(member.createDM());
@@ -75,34 +79,38 @@ export async function handleAuthentication(
     message = sendResult.data;
   }
 
-  // Nach 3 Sekunden den Verify-Button hinzufügen
-  setTimeout(async () => {
-    const verifyButtonResult = createVerifyButton(member.id);
-    if (verifyButtonResult.error) {
-      console.error(
-        'Fehler beim Erzeugen des Verify-Buttons:',
-        verifyButtonResult.error
-      );
-      return;
-    }
-    const actionRowResult = createActionRow(verifyButtonResult.data);
-    if (actionRowResult.error) {
-      console.error(
-        'Fehler beim Erzeugen der ActionRow:',
-        actionRowResult.error
-      );
-      return;
-    }
-    const editResult = await tryCatch(
-      message.edit({ components: [actionRowResult.data] })
+  const verifyButtonResult = createVerifyButton(member.id);
+  if (verifyButtonResult.error) {
+    console.error(
+      'Fehler beim Erzeugen des Verify-Buttons:',
+      verifyButtonResult.error
     );
-    if (editResult.error) {
-      console.error(
-        'Fehler beim Aktualisieren der Nachricht:',
-        editResult.error
-      );
-    }
-  }, 3000);
+    return { data: null, error: verifyButtonResult.error };
+  }
+
+  const authButtonResult = createAuthButton(authUrl);
+  if (authButtonResult.error) {
+    console.error(
+      'Fehler beim Erzeugen des Auth-Buttons:',
+      authButtonResult.error
+    );
+    return { data: null, error: authButtonResult.error };
+  }
+
+  const actionRowResult = createActionRow([
+    authButtonResult.data,
+    verifyButtonResult.data,
+  ]);
+  if (actionRowResult.error) {
+    console.error('Fehler beim Erzeugen der ActionRow:', actionRowResult.error);
+    return { data: null, error: actionRowResult.error };
+  }
+  const editResult = await tryCatch(
+    message.edit({ components: [actionRowResult.data] })
+  );
+  if (editResult.error) {
+    console.error('Fehler beim Aktualisieren der Nachricht:', editResult.error);
+  }
 
   const filter = (i: MessageComponentInteraction) =>
     i.isButton() && i.customId === `verify-${member.id}`;
