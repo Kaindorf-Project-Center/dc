@@ -1,7 +1,5 @@
 import { Request, Response } from 'express';
-import { ConfidentialClientApplication, Configuration } from '@azure/msal-node';
 import { config } from 'common';
-import { createExtensionAttributeIfNotExists } from '../helpers/createExtensionAttributeIfNotExists';
 import { msalClient } from '../server';
 import { setUserDiscordId } from '../helpers/setUserDiscordId';
 import { getAppToken } from '../helpers/tokens';
@@ -33,8 +31,11 @@ export const callback = async (req: Request, res: Response) => {
   const { code, state: encodedState } = req.query;
 
   if (!code || !encodedState) {
-    return res.status(303).redirect('discord://');
-    return res.status(400).json({ error: 'Missing code or state.' });
+    //return res.status(303).redirect('discord://');
+    return res.status(400).render('error', {
+      message: 'Missing code or state.',
+      statusCode: '400',
+    });
   }
 
   const decodedState = JSON.parse(
@@ -58,7 +59,10 @@ export const callback = async (req: Request, res: Response) => {
 
   if (tokenResponse.error != null) {
     console.error(tokenResponse.error);
-    return res.status(500).json({ error: 'Failed to acquire access token' });
+    return res.status(500).render('error', {
+      message: 'Failed to acquire access token.',
+      statusCode: '500',
+    });
   }
 
   const accessToken = tokenResponse.data.accessToken;
@@ -74,7 +78,10 @@ export const callback = async (req: Request, res: Response) => {
   );
 
   if (userResponse.error != null || !userResponse.data.ok) {
-    return res.status(500).json({ error: 'Failed to fetch user data' });
+    return res.status(500).render('error', {
+      message: 'Failed to fetch user data.',
+      statusCode: '500',
+    });
   }
 
   const userData = await userResponse.data.json();
@@ -84,7 +91,10 @@ export const callback = async (req: Request, res: Response) => {
   const appToken = await getAppToken(msalClient);
 
   if (appToken.error != null) {
-    return res.status(500).json({ error: 'Failed to get AppToken' });
+    return res.status(500).render('error', {
+      message: 'Failed to get AppToken',
+      statusCode: '500',
+    });
   }
 
   const setUserDiscordIdResult = await setUserDiscordId(
@@ -93,10 +103,17 @@ export const callback = async (req: Request, res: Response) => {
     discordId
   );
 
-  if (setUserDiscordIdResult.error) {
+  if (
+    setUserDiscordIdResult.error &&
+    setUserDiscordIdResult.error.message === 'discordId already used'
+  ) {
     console.error(setUserDiscordIdResult.error);
-    return res.status(500).send('A user with that Discord ID already exists.');
+    return res.status(400).render('error', {
+      message:
+        'Der verwendete Discord-Account ist bereits mit einem anderen Microsoft-Schulkonto Assoziiert.',
+      statusCode: '400',
+    });
   }
 
-  res.status(303).redirect('discord://');
+  res.status(200).render('success');
 };

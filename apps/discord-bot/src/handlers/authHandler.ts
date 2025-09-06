@@ -74,10 +74,7 @@ export async function handleAuthentication(
   });
 
   collector.on('collect', async (buttonInteraction) => {
-    console.log('leck eier');
-
     if (!buttonInteraction.isButton()) return;
-    console.log('leck eier 2');
 
     const backendUrl = `${config.BACKEND_BASE_URL}/verify/${member.id}`;
     const fetchResult = await tryCatch(fetch(backendUrl, { method: 'GET' }));

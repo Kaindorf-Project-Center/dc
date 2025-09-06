@@ -4,6 +4,7 @@ import { ConfidentialClientApplication, Configuration } from '@azure/msal-node';
 import { config } from 'common';
 import { createExtensionAttributeIfNotExists } from './helpers/createExtensionAttributeIfNotExists';
 import { getAppToken } from './helpers/tokens';
+import path from 'path';
 
 const msalConfig: Configuration = {
   auth: {
@@ -31,6 +32,11 @@ async function initializeApp() {
 
   const app = express();
   const PORT = process.env.PORT || 3000;
+
+  app.set('view engine', 'ejs');
+  app.set('views', path.join(__dirname, 'views'));
+
+  app.use('/static', express.static(path.join(__dirname, 'public')));
 
   app.use(express.json());
 
