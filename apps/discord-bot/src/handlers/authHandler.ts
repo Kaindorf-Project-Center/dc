@@ -2,23 +2,20 @@ import {
   GuildMember,
   MessageComponentInteraction,
   ChatInputCommandInteraction,
+  MessageFlags,
 } from 'discord.js';
 import { randomBytes } from 'crypto';
 import { config } from 'common';
-import {
-  createVerifyButton,
-  createActionRow,
-  createAuthButton,
-} from '../utils/authButtons';
 import { getMappingForLetter } from '../utils/mapping';
 import { tryCatch, Result } from 'common/src/tryCatch';
 import {
-  createAuthEmbed,
-  createErrorEmbed,
-  createSuccessEmbed,
-  createTimeoutEmbed,
-} from '../utils/authEmbeds';
+  createAuthContainer,
+  createErrorContainer,
+  createSuccessContainer,
+  createTimeoutContainer,
+} from '../utils/authComponents';
 import { getOrCreateRole } from '../utils/getOrCreateRole';
+import { getAuthUrl } from '../utils/getAuthUrl';
 
 export async function handleAuthentication(
   member: GuildMember,
@@ -31,7 +28,7 @@ export async function handleAuthentication(
   }
   const dmChannel = dmChannelResult.data;
 
-  // CSRF-Token und Zustandspayload erzeugen
+  // CSRF-Token und Statepayload erzeugen
   const csrfToken = randomBytes(16).toString('hex');
   const statePayload = { csrf: csrfToken, discordId: member.id };
   const encodedState = Buffer.from(JSON.stringify(statePayload)).toString(
@@ -39,27 +36,16 @@ export async function handleAuthentication(
   );
 
   // Authentifizierungs-URL erstellen
-  const authUrl = `https://login.microsoftonline.com/${
-    config.MICROSOFT_TENANT_ID
-  }/oauth2/v2.0/authorize?client_id=${
-    config.MICROSOFT_CLIENT_ID
-  }&response_type=code&redirect_uri=${encodeURIComponent(
-    config.MICROSOFT_REDIRECT_URI
-  )}&response_mode=query&scope=https%3A%2F%2Fgraph.microsoft.com%2F.default&state=${encodedState}`;
+  const authUrl = getAuthUrl(encodedState);
 
-  const authEmbedResult = createAuthEmbed(authUrl);
-  if (authEmbedResult.error) {
-    return { data: null, error: authEmbedResult.error };
-  }
-  const authEmbed = authEmbedResult.data;
+  const container = createAuthContainer(member, authUrl);
 
   let message;
   if (interaction) {
     const replyResult = await tryCatch(
       interaction.reply({
-        embeds: [authEmbed],
-        components: [],
-        fetchReply: true,
+        flags: MessageFlags.IsComponentsV2,
+        components: [container],
       })
     );
     if (replyResult.error) {
@@ -69,47 +55,14 @@ export async function handleAuthentication(
   } else {
     const sendResult = await tryCatch(
       dmChannel.send({
-        embeds: [authEmbed],
-        components: [],
+        flags: MessageFlags.IsComponentsV2,
+        components: [container],
       })
     );
     if (sendResult.error) {
       return { data: null, error: sendResult.error };
     }
     message = sendResult.data;
-  }
-
-  const verifyButtonResult = createVerifyButton(member.id);
-  if (verifyButtonResult.error) {
-    console.error(
-      'Fehler beim Erzeugen des Verify-Buttons:',
-      verifyButtonResult.error
-    );
-    return { data: null, error: verifyButtonResult.error };
-  }
-
-  const authButtonResult = createAuthButton(authUrl);
-  if (authButtonResult.error) {
-    console.error(
-      'Fehler beim Erzeugen des Auth-Buttons:',
-      authButtonResult.error
-    );
-    return { data: null, error: authButtonResult.error };
-  }
-
-  const actionRowResult = createActionRow([
-    authButtonResult.data,
-    verifyButtonResult.data,
-  ]);
-  if (actionRowResult.error) {
-    console.error('Fehler beim Erzeugen der ActionRow:', actionRowResult.error);
-    return { data: null, error: actionRowResult.error };
-  }
-  const editResult = await tryCatch(
-    message.edit({ components: [actionRowResult.data] })
-  );
-  if (editResult.error) {
-    console.error('Fehler beim Aktualisieren der Nachricht:', editResult.error);
   }
 
   const filter = (i: MessageComponentInteraction) =>
@@ -121,17 +74,18 @@ export async function handleAuthentication(
   });
 
   collector.on('collect', async (buttonInteraction) => {
+    console.log('leck eier');
+
     if (!buttonInteraction.isButton()) return;
+    console.log('leck eier 2');
 
     const backendUrl = `${config.BACKEND_BASE_URL}/verify/${member.id}`;
     const fetchResult = await tryCatch(fetch(backendUrl, { method: 'GET' }));
     if (fetchResult.error || !fetchResult.data.ok) {
-      const errorEmbedResult = createErrorEmbed();
-      if (!errorEmbedResult.error) {
-        await tryCatch(
-          message.edit({ embeds: [errorEmbedResult.data], components: [] })
-        );
-      }
+      const errorContainer = createErrorContainer();
+
+      await tryCatch(message.edit({ components: [errorContainer] }));
+
       buttonInteraction.deferUpdate();
       collector.stop('failed');
       return;
@@ -139,12 +93,10 @@ export async function handleAuthentication(
 
     const jsonResult = await tryCatch(fetchResult.data.json());
     if (jsonResult.error) {
-      const errorEmbedResult = createErrorEmbed();
-      if (!errorEmbedResult.error) {
-        await tryCatch(
-          message.edit({ embeds: [errorEmbedResult.data], components: [] })
-        );
-      }
+      const errorContainer = createErrorContainer();
+
+      await tryCatch(message.edit({ components: [errorContainer] }));
+
       buttonInteraction.deferUpdate();
       collector.stop('failed');
       return;
@@ -157,12 +109,9 @@ export async function handleAuthentication(
     );
     if (!userShorthandMatch) {
       console.error('User-Shorthand entspricht nicht dem erwarteten Muster.');
-      const errorEmbedResult = createErrorEmbed();
-      if (!errorEmbedResult.error) {
-        await tryCatch(
-          message.edit({ embeds: [errorEmbedResult.data], components: [] })
-        );
-      }
+      const errorContainer = createErrorContainer();
+
+      await tryCatch(message.edit({ components: [errorContainer] }));
       collector.stop('failed');
       return;
     }
@@ -171,12 +120,11 @@ export async function handleAuthentication(
     const mappingResult = await getMappingForLetter(letter);
     if (mappingResult.error) {
       console.error('Mapping-Fehler:', mappingResult.error);
-      const errorEmbedResult = createErrorEmbed();
-      if (!errorEmbedResult.error) {
-        await tryCatch(
-          message.edit({ embeds: [errorEmbedResult.data], components: [] })
-        );
-      }
+
+      const errorContainer = createErrorContainer();
+
+      await tryCatch(message.edit({ components: [errorContainer] }));
+
       collector.stop('failed');
       return;
     }
@@ -191,12 +139,9 @@ export async function handleAuthentication(
         'Fehler beim Zuweisen der Abteilungsrolle:',
         deptRoleResult.error
       );
-      const errorEmbedResult = createErrorEmbed();
-      if (!errorEmbedResult.error) {
-        await tryCatch(
-          message.edit({ embeds: [errorEmbedResult.data], components: [] })
-        );
-      }
+      const errorContainer = createErrorContainer();
+
+      await tryCatch(message.edit({ components: [errorContainer] }));
       collector.stop('failed');
       return;
     }
@@ -216,12 +161,9 @@ export async function handleAuthentication(
         'Fehler beim Zuweisen der Klassenrolle:',
         classRoleResult.error
       );
-      const errorEmbedResult = createErrorEmbed();
-      if (!errorEmbedResult.error) {
-        await tryCatch(
-          message.edit({ embeds: [errorEmbedResult.data], components: [] })
-        );
-      }
+      const errorContainer = createErrorContainer();
+
+      await tryCatch(message.edit({ components: [errorContainer] }));
       collector.stop('failed');
       return;
     }
@@ -245,37 +187,31 @@ export async function handleAuthentication(
       );
     }
 
-    const successEmbedResult = createSuccessEmbed();
-    if (successEmbedResult.error) {
-      console.error(
-        'Fehler beim Erzeugen des Success-Embeds:',
-        successEmbedResult.error
-      );
-    } else {
-      await tryCatch(
-        message.edit({ embeds: [successEmbedResult.data], components: [] })
-      );
+    const successContainer = createSuccessContainer();
+
+    const editResult = await tryCatch(
+      message.edit({ components: [successContainer] })
+    );
+    if (editResult.error) {
+      console.error(editResult.error);
+      collector.stop('failed');
     }
+
     collector.stop('verified');
   });
 
   collector.on('end', async (_collected, reason) => {
     if (reason === 'time') {
-      const timeoutEmbedResult = createTimeoutEmbed();
-      if (timeoutEmbedResult.error) {
-        console.error(
-          'Fehler beim Erzeugen des Timeout-Embeds:',
-          timeoutEmbedResult.error
-        );
-      } else {
-        await tryCatch(
-          message.edit({ embeds: [timeoutEmbedResult.data], components: [] })
-        );
-      }
+      const timeoutContainer = createTimeoutContainer();
+
+      await tryCatch(message.edit({ components: [timeoutContainer] }));
+
       console.log(
         `Verifizierung für ${member.user.username} hat zu lange gedauert.`
       );
     } else {
+      console.log(reason);
+
       console.log(`Collector für ${member.user.username} beendet.`);
     }
   });

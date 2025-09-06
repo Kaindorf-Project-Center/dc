@@ -94,6 +94,7 @@ export const callback = async (req: Request, res: Response) => {
   );
 
   if (setUserDiscordIdResult.error) {
+    console.error(setUserDiscordIdResult.error);
     return res.status(500).send('A user with that Discord ID already exists.');
   }
 
