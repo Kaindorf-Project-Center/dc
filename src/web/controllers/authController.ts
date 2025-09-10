@@ -33,116 +33,114 @@ import { client } from '../../index';
 
 // Callback (handle OAuth response)
 export const callback = async (req: Request, res: Response) => {
-	const { code, state: encodedState } = req.query;
+  const { code, state: encodedState } = req.query;
 
-	if (!code || !encodedState) {
-		// return res.status(303).redirect('discord://');
-		return res.status(400).render('error', {
-			message: 'Missing code or state.',
-			statusCode: '400',
-		});
-	}
+  if (!code || !encodedState) {
+    // return res.status(303).redirect('discord://');
+    return res.status(400).render('error', {
+      message: 'Missing code or state.',
+      statusCode: '400',
+    });
+  }
 
-	const decodedState = JSON.parse(
-		Buffer.from(encodedState as string, 'base64').toString('utf-8'),
-	);
+  const decodedState = JSON.parse(
+    Buffer.from(encodedState as string, 'base64').toString('utf-8')
+  );
 
-	// Retrieve the CSRF token and Discord ID from the decoded state
-	const { csrf, discordId } = decodedState;
-	console.log('CSRF Token:', csrf);
-	console.log('Discord ID:', discordId);
+  // Retrieve the CSRF token and Discord ID from the decoded state
+  const { csrf, discordId } = decodedState;
+  console.log('CSRF Token:', csrf);
+  console.log('Discord ID:', discordId);
 
-	const tokenRequest = {
-		code: code as string,
-		scopes: ['https://graph.microsoft.com/.default'],
-		redirectUri: config.MICROSOFT_REDIRECT_URI,
-	};
+  const tokenRequest = {
+    code: code as string,
+    scopes: ['https://graph.microsoft.com/.default'],
+    redirectUri: config.MICROSOFT_REDIRECT_URI,
+  };
 
-	const tokenResponse = await tryCatch(
-		msalClient.acquireTokenByCode(tokenRequest),
-	);
+  const tokenResponse = await tryCatch(
+    msalClient.acquireTokenByCode(tokenRequest)
+  );
 
-	if (tokenResponse.error != null) {
-		console.error(tokenResponse.error);
-		return res.status(500).render('error', {
-			message: 'Failed to acquire access token.',
-			statusCode: '500',
-		});
-	}
+  if (tokenResponse.error != null) {
+    console.error(tokenResponse.error);
+    return res.status(500).render('error', {
+      message: 'Failed to acquire access token.',
+      statusCode: '500',
+    });
+  }
 
-	const accessToken = tokenResponse.data.accessToken;
+  const accessToken = tokenResponse.data.accessToken;
 
-	const graph = graphClientWithToken(accessToken);
+  const graph = graphClientWithToken(accessToken);
 
-	// Step 2: Get the authenticated user's profile
-	const userData = await graph
-		.api('/me')
-		.select('id,givenName,surname,userPrincipalName')
-		.get();
+  // Step 2: Get the authenticated user's profile
+  const userData = await graph
+    .api('/me')
+    .select('id,givenName,surname,userPrincipalName')
+    .get();
 
-	const userId = userData.id;
-	console.log('Authenticated user ID:', userId);
+  const userId = userData.id;
+  console.log('Authenticated user ID:', userId);
 
-	const appToken = await getAppToken(msalClient);
+  const appToken = await getAppToken(msalClient);
 
-	if (appToken.error != null) {
-		return res.status(500).render('error', {
-			message: 'Failed to get AppToken',
-			statusCode: '500',
-		});
-	}
+  if (appToken.error != null) {
+    return res.status(500).render('error', {
+      message: 'Failed to get AppToken',
+      statusCode: '500',
+    });
+  }
 
-	const setUserDiscordIdResult = await setUserDiscordId(
-		appToken.data,
-		userId,
-		discordId,
-	);
+  const setUserDiscordIdResult = await setUserDiscordId(
+    appToken.data,
+    userId,
+    discordId
+  );
 
-	if (
-		setUserDiscordIdResult.error &&
+  if (
+    setUserDiscordIdResult.error &&
     setUserDiscordIdResult.error.message === 'discordId already used'
-	) {
-		console.error(setUserDiscordIdResult.error);
-		return res.status(400).render('error', {
-			message:
+  ) {
+    console.error(setUserDiscordIdResult.error);
+    return res.status(400).render('error', {
+      message:
         'Der verwendete Discord-Account ist bereits mit einem anderen Microsoft-Schulkonto Assoziiert.',
-			statusCode: '400',
-		});
-	}
+      statusCode: '400',
+    });
+  }
 
-	const p = pendingByDiscordId.get(discordId);
-	if (!p || p.csrf !== csrf) {
-		return res.status(400).render('error', {
-			message: 'Invalid or expired state.',
-			statusCode: '400',
-		});
-	}
-	console.log(p);
+  const p = pendingByDiscordId.get(discordId);
+  if (!p || p.csrf !== csrf) {
+    return res.status(400).render('error', {
+      message: 'Invalid or expired state.',
+      statusCode: '400',
+    });
+  }
+  console.log(p);
 
-	// fetch Discord objects
-	const guild = await client.guilds.fetch(p.guildId);
-	const member = await guild.members.fetch(p.memberId);
-	const channel = await client.channels.fetch(p.channelId);
-	if (!channel?.isTextBased()) {
-		return res.status(500).render('error', {
-			message: 'Channel not text-based.',
-			statusCode: '500',
-		});
-	}
-	const message = await channel.messages.fetch(p.messageId);
-	console.log(message.id);
+  // fetch Discord objects
+  const guild = await client.guilds.fetch(p.guildId);
+  const member = await guild.members.fetch(p.memberId);
+  const channel = await client.channels.fetch(p.channelId);
+  if (!channel?.isTextBased()) {
+    return res.status(500).render('error', {
+      message: 'Channel not text-based.',
+      statusCode: '500',
+    });
+  }
+  const message = await channel.messages.fetch(p.messageId);
+  console.log(message.id);
 
-	// do roles / nickname; edit UI
-	try {
-		await finishVerification(member, message, userData);
-	}
-	catch (e) {
-		console.log(e);
-		await message.edit({ components: [createErrorContainer()] });
-	}
-	finally {
-		pendingByDiscordId.delete(discordId);
-	}
+  // do roles / nickname; edit UI
+  try {
+    await finishVerification(member, message, userData);
+  } catch (e) {
+    console.log(e);
+    await message.edit({ components: [createErrorContainer()] });
+  } finally {
+    pendingByDiscordId.delete(discordId);
+  }
 
-	res.status(200).render('success');
+  res.status(200).render('success');
 };

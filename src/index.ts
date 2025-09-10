@@ -8,7 +8,7 @@ import { config } from './config';
 
 // Create a new client instance
 export const client = new Client({
-	intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMembers],
+  intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMembers],
 }) as ExtendedClient;
 
 loadEvents(client);
