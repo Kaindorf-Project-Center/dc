@@ -1,5 +1,5 @@
-import { Client, Collection } from 'discord.js';
-import { Command } from './Command';
+import type { Client, Collection } from 'discord.js';
+import type { Command } from './Command';
 
 export interface ExtendedClient extends Client {
   commands: Collection<string, Command>;

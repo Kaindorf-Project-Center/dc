@@ -17,4 +17,4 @@ repos:
     rev: v9.10.0
     hooks:
       - id: eslint
-        args: [--fix]
+        args: ["\"src/**/*.{ts,tsx,js,cjs,mjs}\"", --fix]

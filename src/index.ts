@@ -1,14 +1,14 @@
 // Require the necessary discord.js classes
 import { Client, Collection, GatewayIntentBits } from 'discord.js';
 import { loadCommands, loadEvents } from './loader';
-import { Command } from './interfaces/Command';
-import { ExtendedClient } from './interfaces/ExtendedClient';
+import type { Command } from './interfaces/Command';
+import type { ExtendedClient } from './interfaces/ExtendedClient';
 import { initializeWebServer } from './server';
 import { config } from './config';
 
 // Create a new client instance
 export const client = new Client({
-  intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMembers],
+	intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMembers],
 }) as ExtendedClient;
 
 loadEvents(client);
