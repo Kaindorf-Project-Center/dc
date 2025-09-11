@@ -1,50 +1,56 @@
-import type { Client } from 'discord.js';
+import type { Client, ClientEvents } from 'discord.js';
 import { Collection } from 'discord.js';
-import type { Event } from './interfaces/Event';
 import fs from 'fs';
 import path from 'path';
+import type { Event } from './interfaces/Event';
 import type { Command } from './interfaces/Command';
 
-export const loadEvents = (client: Client) => {
+type DefaultExport<T> = { default: T } | T;
+
+async function importDefault<T>(filePath: string): Promise<T> {
+	const mod = (await import(filePath)) as DefaultExport<T>;
+	return (mod as { default?: T }).default ?? (mod as T);
+}
+
+export const loadEvents = async (client: Client): Promise<void> => {
 	const eventsPath = path.join(__dirname, 'events');
-	const eventFiles = fs
-		.readdirSync(eventsPath)
-		.filter((file) => file.endsWith('.ts'));
+	const eventFiles = fs.readdirSync(eventsPath).filter((file) => file.endsWith('.ts'));
 
 	for (const file of eventFiles) {
 		const filePath = path.join(eventsPath, file);
-		const event: Event<any> = require(filePath).default;
+		const event = await importDefault<Event<keyof ClientEvents>>(filePath);
+
+		const handler = (...args: ClientEvents[typeof event.name]) => {
+			void event.execute(...args);
+		};
+
 		if (event.once) {
-			client.once(event.name, (...args) => event.execute(...args));
+			client.once(event.name, handler);
 		}
 		else {
-			client.on(event.name, (...args) => event.execute(...args));
+			client.on(event.name, handler);
 		}
 	}
 };
 
-export const loadCommands = (): Collection<string, Command> => {
-	// TODO: write directly to extendendclient instead of returning collection
+export const loadCommands = async (): Promise<Collection<string, Command>> => {
+	// Hinweis: besser direkt auf ExtendedClient schreiben statt zurückzugeben.
 	console.log('[INFO] loading commands...');
 	const commandsPath = path.join(__dirname, 'commands');
 	const commands = new Collection<string, Command>();
 
-	const commandFiles = fs
-		.readdirSync(commandsPath)
-		.filter((file) => file.endsWith('.ts'));
+	const commandFiles = fs.readdirSync(commandsPath).filter((file) => file.endsWith('.ts'));
 
 	for (const file of commandFiles) {
 		const filePath = path.join(commandsPath, file);
-		const command = require(filePath);
+		const command = await importDefault<Command>(filePath);
 
-		if (command.default == null || command.default.data == null) {
-			console.error(
-				`Command in file ${file} is missing a 'data.name' property.`,
-			);
+		if (!command?.data) {
+			console.error(`Command in file ${file} is missing a 'data.name' property.`);
 			continue;
 		}
 
-		commands.set(command.default.data.name, command.default);
+		commands.set(command.data.name, command);
 		console.info(`[INFO] loading the command from ${file}`);
 	}
 	return commands;
