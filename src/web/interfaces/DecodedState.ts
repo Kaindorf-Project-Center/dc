@@ -1,4 +1,4 @@
-export type State = {
+export interface DecodedState {
   csrf: string;
   discordId: string;
 };

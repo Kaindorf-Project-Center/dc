@@ -10,7 +10,7 @@ import { finishVerification } from '../helpers/finishVerification';
 import { createErrorContainer } from '../../utils/authComponents';
 import { client } from '../../index';
 import type { UserData } from '../interfaces/UserData';
-import type { State } from '../interfaces/State';
+import type { DecodedState } from '../interfaces/DecodedState';
 
 /* export const authenticate = async (req: Request, res: Response) => {
   const state = Math.random().toString(36).substring(7);
@@ -47,7 +47,7 @@ export const callback = async (req: Request, res: Response) => {
 
 	const decodedState = JSON.parse(
 		Buffer.from(encodedState as string, 'base64').toString('utf-8'),
-	) as State;
+	) as DecodedState;
 
 	// Retrieve the CSRF token and Discord ID from the decoded state
 	const { csrf, discordId } = decodedState;
@@ -79,7 +79,7 @@ export const callback = async (req: Request, res: Response) => {
 	// Step 2: Get the authenticated user's profile
 	const userData = (await graph
 		.api('/me')
-		.select('id,givenName,surname,userPrincipalName')
+		.select('id,displayName,userPrincipalName,surname,givenName,mail')
 		.get()
 		.catch(() => {
 			return res.status(500).render('error', {
@@ -126,7 +126,6 @@ export const callback = async (req: Request, res: Response) => {
 			statusCode: '400',
 		});
 	}
-	console.log(p);
 
 	// fetch Discord objects
 	const guild = await client.guilds.fetch(p.guildId);
@@ -139,7 +138,6 @@ export const callback = async (req: Request, res: Response) => {
 		});
 	}
 	const message = await channel.messages.fetch(p.messageId);
-	console.log(message.id);
 
 	// do roles / nickname; edit UI
 	try {

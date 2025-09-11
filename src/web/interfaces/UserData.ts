@@ -1,6 +1,8 @@
 export interface UserData {
   id: string;
-  givenName: string;
-  surname: string;
+  displayName: string;
   userPrincipalName: string;
+  surname: string;
+  givenName: string;
+  mail: string | null;
 }

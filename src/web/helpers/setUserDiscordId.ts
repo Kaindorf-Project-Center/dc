@@ -2,6 +2,7 @@ import type { User } from '@microsoft/microsoft-graph-types';
 import { config } from '../../config';
 import type { Result } from '../../utils/tryCatch';
 import { graphClientWithToken } from './graph';
+import type { UsersSearchResponse } from '../interfaces/UsersSearchResponse';
 
 export async function setUserDiscordId(
 	accessToken: string,
@@ -21,7 +22,7 @@ export async function setUserDiscordId(
 		.api('/users')
 		.filter(encodeURIComponent(filterQuery))
 		.select('id,displayName,userPrincipalName,surname,givenName,mail')
-		.get();
+		.get() as UsersSearchResponse;
 
 	if (searchResponse.value && searchResponse.value.length > 0) {
 		const user: User = searchResponse.value[0];
