@@ -6,7 +6,7 @@ import type { ExtensionPropertiesResponse } from '../interfaces/ExtensionPropert
 // TODO: error handling
 export async function createExtensionAttributeIfNotExists(accessToken: string) {
 	try {
-		console.log("Checking if extension attribute 'discordId' exists...");
+		console.log('Checking if extension attribute \'discordId\' exists...');
 
 		const graph = graphClientWithToken(accessToken);
 
@@ -19,17 +19,17 @@ export async function createExtensionAttributeIfNotExists(accessToken: string) {
 			})) as ExtensionPropertiesResponse;
 
 		const existingAttribute = checkResponse.value.find(
-			(attr: ExtensionProperty) => attr.name?.includes('discordId')
+			(attr: ExtensionProperty) => attr.name?.includes('discordId'),
 		);
 
 		if (existingAttribute) {
-			console.log("Extension attribute 'discordId' already exists.");
+			console.log('Extension attribute \'discordId\' already exists.');
 			// Skip creation
 			return existingAttribute;
 		}
 
 		// Create the attribute if not found
-		console.log("Creating new extension attribute 'discordId'...");
+		console.log('Creating new extension attribute \'discordId\'...');
 
 		const extensionProperty = {
 			name: 'discordId',
@@ -50,7 +50,8 @@ export async function createExtensionAttributeIfNotExists(accessToken: string) {
 
 		console.log('Created Extension Attribute:', createResponse);
 		return createResponse;
-	} catch (e) {
+	}
+	catch (e) {
 		console.error(e);
 		throw new Error('Failed to find or create Extension Attribute.');
 	}

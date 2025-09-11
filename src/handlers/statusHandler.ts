@@ -11,13 +11,13 @@ import { config } from '../config';
 
 export async function handleStatus(
 	member: GuildMember,
-	interaction: ChatInputCommandInteraction
+	interaction: ChatInputCommandInteraction,
 ): Promise<Result<void, Error>> {
 	const microsoftStatus = await handleMicrosoftStatus(member);
 	const microsoftStatusEmbed = new EmbedBuilder()
 		.setTitle('Microsoft status: ' + (microsoftStatus ? '✅' : '❌'))
 		.setDescription(
-			microsoftStatus ? 'authentifiziert' : 'nicht authentifiziert'
+			microsoftStatus ? 'authentifiziert' : 'nicht authentifiziert',
 		)
 		.setColor(microsoftStatus ? 'Green' : 'Red');
 
@@ -55,7 +55,7 @@ async function handleMicrosoftStatus(member: GuildMember): Promise<boolean> {
 async function handleDiscordStatus(member: GuildMember): Promise<boolean> {
 	if (member.nickname == null) return false;
 	const nicknameMatch = member.nickname.match(
-		/^[A-Z][a-z]+(?:-[A-Z][a-z]+)?\s[A-Z]+(?:[-\s][A-Z]+)?$/
+		/^[A-Z][a-z]+(?:-[A-Z][a-z]+)?\s[A-Z]+(?:[-\s][A-Z]+)?$/,
 	);
 
 	const departmentMap = await parseYamlToMap();
@@ -68,7 +68,7 @@ async function handleDiscordStatus(member: GuildMember): Promise<boolean> {
 
 	const hasDepartmentRole =
 		member.roles.cache.find((r) =>
-			allDepartmentsResult.data.includes(r.name)
+			allDepartmentsResult.data.includes(r.name),
 		) != null;
 
 	const allPostfixesResult = await getAllPostfixes(departmentMap.data);
@@ -76,11 +76,11 @@ async function handleDiscordStatus(member: GuildMember): Promise<boolean> {
 	if (allPostfixesResult.error) return false;
 
 	const postfixRegex = new RegExp(
-		`^(${allPostfixesResult.data.join('|')})\\d{2}$`
+		`^(${allPostfixesResult.data.join('|')})\\d{2}$`,
 	);
 
 	const hasClassRole = member.roles.cache.some((r) =>
-		postfixRegex.test(r.name)
+		postfixRegex.test(r.name),
 	);
 
 	return nicknameMatch != null && hasDepartmentRole && hasClassRole;

@@ -7,7 +7,7 @@ import type { UsersSearchResponse } from '../interfaces/UsersSearchResponse';
 export async function setUserDiscordId(
 	accessToken: string,
 	userId: string,
-	discordId: string
+	discordId: string,
 ): Promise<Result<true, Error>> {
 	console.log(`Updating discordId for user: ${userId}...`);
 
@@ -31,7 +31,8 @@ export async function setUserDiscordId(
 		}
 		console.log('A user with that Discord ID already exists.');
 		return { data: null, error: new Error('discordId already used') };
-	} else {
+	}
+	else {
 		graph
 			.api(`/users${userId}`)
 			.update({ [`extension_${clientIdNoDashes}_discordId`]: discordId })

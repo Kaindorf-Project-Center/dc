@@ -46,7 +46,7 @@ export const callback = async (req: Request, res: Response) => {
 	}
 
 	const decodedState = JSON.parse(
-		Buffer.from(encodedState as string, 'base64').toString('utf-8')
+		Buffer.from(encodedState as string, 'base64').toString('utf-8'),
 	) as DecodedState;
 
 	// Retrieve the CSRF token and Discord ID from the decoded state
@@ -61,7 +61,7 @@ export const callback = async (req: Request, res: Response) => {
 	};
 
 	const tokenResponse = await tryCatch(
-		msalClient.acquireTokenByCode(tokenRequest)
+		msalClient.acquireTokenByCode(tokenRequest),
 	);
 
 	if (tokenResponse.error != null) {
@@ -104,7 +104,7 @@ export const callback = async (req: Request, res: Response) => {
 	const setUserDiscordIdResult = await setUserDiscordId(
 		appToken.data,
 		userId,
-		discordId
+		discordId,
 	);
 
 	if (
@@ -142,10 +142,12 @@ export const callback = async (req: Request, res: Response) => {
 	// do roles / nickname; edit UI
 	try {
 		await finishVerification(member, message, userData);
-	} catch (e) {
+	}
+	catch (e) {
 		console.log(e);
 		await message.edit({ components: [createErrorContainer()] });
-	} finally {
+	}
+	finally {
 		pendingByDiscordId.delete(discordId);
 	}
 

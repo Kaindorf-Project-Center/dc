@@ -10,21 +10,23 @@ const event: Event<typeof Events.InteractionCreate> = {
 		if (!interaction.isChatInputCommand()) return;
 
 		const command = (interaction.client as ExtendedClient).commands.get(
-			interaction.commandName
+			interaction.commandName,
 		);
 		if (!command) {
 			console.error(
-				`No command matching ${interaction.commandName} was found.`
+				`No command matching ${interaction.commandName} was found.`,
 			);
 			return;
 		}
 
 		try {
 			await command.execute(interaction);
-		} catch (error: unknown) {
+		}
+		catch (error: unknown) {
 			if (error instanceof Error) {
 				console.error(error);
-			} else {
+			}
+			else {
 				console.error(String(error));
 			}
 
@@ -35,7 +37,8 @@ const event: Event<typeof Events.InteractionCreate> = {
 
 			if (interaction.replied || interaction.deferred) {
 				await interaction.followUp(payload);
-			} else {
+			}
+			else {
 				await interaction.reply(payload);
 			}
 		}

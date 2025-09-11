@@ -10,7 +10,7 @@ import {
 export async function finishVerification(
 	member: GuildMember,
 	message: Message,
-	user: { givenName: string; surname: string; userPrincipalName: string }
+	user: { givenName: string; surname: string; userPrincipalName: string },
 ) {
 	const shorthand = user.userPrincipalName.split('@')[0];
 	const userShorthandMatch = shorthand.match(/[a-z]{5}([abcdnmzy])(\d\d)/);
@@ -20,7 +20,7 @@ export async function finishVerification(
 				components: [
 					createErrorContainer('Dein Kürzel entspricht nicht dem Muster!'),
 				],
-			})
+			}),
 		);
 		return;
 	}

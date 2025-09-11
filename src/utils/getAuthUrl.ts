@@ -6,6 +6,6 @@ export function getAuthUrl(encodedState: string): string {
 	}/oauth2/v2.0/authorize?client_id=${
 		config.MICROSOFT_CLIENT_ID
 	}&response_type=code&redirect_uri=${encodeURIComponent(
-		config.MICROSOFT_REDIRECT_URI
+		config.MICROSOFT_REDIRECT_URI,
 	)}&response_mode=query&scope=https%3A%2F%2Fgraph.microsoft.com%2F.default&state=${encodedState}`;
 }

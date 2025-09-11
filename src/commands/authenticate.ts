@@ -19,11 +19,11 @@ const authenticateCommand: Command = {
 		}
 
 		const memberResult = await tryCatch(
-			guild.members.fetch(interaction.user.id)
+			guild.members.fetch(interaction.user.id),
 		);
 		if (memberResult.error != null) {
 			await tryCatch(
-				interaction.reply({ content: 'Member not found.', ephemeral: true })
+				interaction.reply({ content: 'Member not found.', ephemeral: true }),
 			);
 			return;
 		}
