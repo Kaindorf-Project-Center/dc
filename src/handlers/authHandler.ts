@@ -9,7 +9,7 @@ import {
 	createTimeoutContainer,
 } from '../utils/authComponents';
 import { getAuthUrl } from '../utils/getAuthUrl';
-import { pendingByDiscordId } from '../interfaces/pending';
+import { pendingByDiscordId } from '../interfaces/Pending';
 
 export async function handleAuthentication(
 	member: GuildMember,

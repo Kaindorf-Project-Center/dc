@@ -8,6 +8,22 @@ export interface DepartmentDetails {
   longname: string;
 }
 
+/** Laufzeit-Validierung für DepartmentDetails */
+function isDepartmentDetails(value: unknown): value is DepartmentDetails {
+	if (typeof value !== 'object' || value === null) return false;
+	const rec = value as Record<string, unknown>;
+	return typeof rec.department === 'string' && typeof rec.longname === 'string';
+}
+
+/** Laufzeit-Validierung für das gesamte Mapping */
+function isDepartmentMapping(
+	value: unknown,
+): value is Record<string, DepartmentDetails> {
+	if (typeof value !== 'object' || value === null) return false;
+	const obj = value as Record<string, unknown>;
+	return Object.values(obj).every(isDepartmentDetails);
+}
+
 export async function getMappingForLetter(
 	letter: string,
 ): Promise<Result<DepartmentDetails, Error>> {
@@ -17,14 +33,22 @@ export async function getMappingForLetter(
 	if (fileResult.error) {
 		return { data: null, error: fileResult.error };
 	}
+
 	try {
-		const mapping = YAML.parse(fileResult.data);
-		if (mapping && mapping[letter]) {
-			return { data: mapping[letter], error: null };
+		const raw: unknown = YAML.parse(fileResult.data);
+
+		if (!isDepartmentMapping(raw)) {
+			return { data: null, error: new Error('Ungültiges Mapping-Format') };
 		}
-		else {
-			return { data: null, error: new Error('Mapping not found for letter') };
+
+		// jetzt: Record<string, DepartmentDetails>
+		const mapping = raw;
+		const entry = mapping[letter];
+
+		if (entry) {
+			return { data: entry, error: null };
 		}
+		return { data: null, error: new Error('Mapping not found for letter') };
 	}
 	catch (err) {
 		return { data: null, error: err as Error };
@@ -37,9 +61,7 @@ export function getAllDepartments(
 	const departments = Array.from(departmentMap.values()).map(
 		(entry) => entry.department,
 	);
-
 	const uniqueDepartments = Array.from(new Set(departments));
-
 	return { data: uniqueDepartments, error: null };
 }
 
@@ -49,7 +71,6 @@ export function getAllPostfixes(
 	const longnames = Array.from(departmentMap.values()).map(
 		(entry) => entry.longname,
 	);
-
 	return { data: longnames, error: null };
 }
 
@@ -67,15 +88,24 @@ export async function parseYamlToMap(): Promise<
 		return { data: null, error: fileResult.error };
 	}
 
-	const parsedData: Record<string, DepartmentDetails> = YAML.parse(
-		fileResult.data,
-	);
+	try {
+		const raw: unknown = YAML.parse(fileResult.data);
 
-	const resultMap = new Map<string, DepartmentDetails>();
+		if (!isDepartmentMapping(raw)) {
+			return { data: null, error: new Error('Ungültiges Mapping-Format') };
+		}
 
-	Object.entries(parsedData).forEach(([key, value]) => {
-		resultMap.set(key, value);
-	});
+		// Record<string, DepartmentDetails>
+		const parsedData = raw;
+		const resultMap = new Map<string, DepartmentDetails>();
 
-	return { data: resultMap, error: null };
+		for (const [key, value] of Object.entries(parsedData)) {
+			resultMap.set(key, value);
+		}
+
+		return { data: resultMap, error: null };
+	}
+	catch (err) {
+		return { data: null, error: err as Error };
+	}
 }

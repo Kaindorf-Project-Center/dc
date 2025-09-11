@@ -5,12 +5,12 @@ import { getAppToken } from '../helpers/tokens';
 import { config } from '../../config';
 import { tryCatch } from '../../utils/tryCatch';
 import { graphClientWithToken } from '../helpers/graph';
-import { pendingByDiscordId } from '../../interfaces/pending';
 import { finishVerification } from '../helpers/finishVerification';
 import { createErrorContainer } from '../../utils/authComponents';
 import { client } from '../../index';
 import type { UserData } from '../interfaces/UserData';
 import type { DecodedState } from '../interfaces/DecodedState';
+import { pendingByDiscordId } from '../../interfaces/Pending';
 
 /* export const authenticate = async (req: Request, res: Response) => {
   const state = Math.random().toString(36).substring(7);
