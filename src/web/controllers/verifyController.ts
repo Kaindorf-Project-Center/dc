@@ -2,6 +2,7 @@ import { config } from '../../config';
 import type { Request, Response } from 'express';
 import { msalClient } from '../../server';
 import { graphClientWithToken } from '../helpers/graph';
+import type { UsersSearchResponse } from '../interfaces/UsersSearchResponse';
 
 export const verify = async (req: Request, res: Response) => {
 	const { discordId } = req.params;
@@ -33,7 +34,10 @@ export const verify = async (req: Request, res: Response) => {
 			.api('/users')
 			.filter(encodeURIComponent(filterQuery))
 			.select('id,displayName,userPrincipalName,surname,givenName,mail')
-			.get();
+			.get()
+			.catch(r => {
+				console.log(r);
+			}) as UsersSearchResponse;
 
 		if (searchResponse.value && searchResponse.value.length > 0) {
 			// User found – they are authenticated (i.e. have completed the OAuth flow)

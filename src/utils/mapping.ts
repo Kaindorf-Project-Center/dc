@@ -31,9 +31,9 @@ export async function getMappingForLetter(
 	}
 }
 
-export async function getAllDepartments(
+export function getAllDepartments(
 	departmentMap: Map<string, DepartmentDetails>,
-): Promise<Result<string[], Error>> {
+): Result<string[], Error> {
 	const departments = Array.from(departmentMap.values()).map(
 		(entry) => entry.department,
 	);
@@ -43,9 +43,9 @@ export async function getAllDepartments(
 	return { data: uniqueDepartments, error: null };
 }
 
-export async function getAllPostfixes(
+export function getAllPostfixes(
 	departmentMap: Map<string, DepartmentDetails>,
-): Promise<Result<string[], Error>> {
+): Result<string[], Error> {
 	const longnames = Array.from(departmentMap.values()).map(
 		(entry) => entry.longname,
 	);
