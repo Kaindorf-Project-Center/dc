@@ -8,6 +8,8 @@ export interface DepartmentDetails {
 	longname: string;
 }
 
+const ROLE_MAPPING_FILEPATH = './shorthand-role-mapping.yaml';
+
 /** Laufzeit-Validierung für DepartmentDetails */
 function isDepartmentDetails(value: unknown): value is DepartmentDetails {
 	if (typeof value !== 'object' || value === null) return false;
@@ -28,7 +30,7 @@ export async function getMappingForLetter(
 	letter: string,
 ): Promise<Result<DepartmentDetails, Error>> {
 	const fileResult = await tryCatch(
-		fsPromises.readFile('./shorthand-role-mapping.yaml', 'utf8'),
+		fsPromises.readFile(ROLE_MAPPING_FILEPATH, 'utf8'),
 	);
 	if (fileResult.error) {
 		return { data: null, error: fileResult.error };
@@ -79,7 +81,7 @@ export async function parseYamlToMap(): Promise<
 	> {
 	const fileResult = await tryCatch(
 		fsPromises.readFile(
-			'./apps/discord-bot/shorthand-role-mapping.yaml',
+			ROLE_MAPPING_FILEPATH,
 			'utf8',
 		),
 	);

@@ -1,5 +1,4 @@
 import type { Result } from '../utils/tryCatch';
-import { tryCatch } from '../utils/tryCatch';
 import type { ChatInputCommandInteraction, GuildMember } from 'discord.js';
 import { EmbedBuilder } from 'discord.js';
 import {
@@ -8,6 +7,9 @@ import {
 	parseYamlToMap,
 } from '../utils/mapping';
 import { config } from '../config';
+import { msalClient } from 'src/server';
+import { graphClientWithToken } from 'src/web/helpers/graph';
+import type { UsersSearchResponse } from 'src/web/interfaces/UsersSearchResponse';
 
 export async function handleStatus(
 	member: GuildMember,
@@ -23,6 +25,7 @@ export async function handleStatus(
 
 	// TODO: check if the name and roles from microsoft match those in discord
 	const discordStatus = await handleDiscordStatus(member);
+
 	const discordStatusEmbed = new EmbedBuilder()
 		.setTitle('Discord status: ' + (discordStatus ? '✅' : '❌'))
 		.setDescription(discordStatus ? 'authentifiziert' : 'nicht authentifiziert')
@@ -36,21 +39,47 @@ export async function handleStatus(
 }
 
 async function handleMicrosoftStatus(member: GuildMember): Promise<boolean> {
-	const backendUrl = `${config.BACKEND_BASE_URL}/verify/${member.id}`;
-	const fetchResult = await tryCatch(fetch(backendUrl, { method: 'GET' }));
-	if (fetchResult.error || !fetchResult.data.ok) {
-		// TODO: should be an ERROR
+	const clientIdNoDashes = config.MICROSOFT_CLIENT_ID.replace(/-/g, '');
+
+	// Acquire an application token (client credentials flow)
+	const tokenRequest = {
+		scopes: ['https://graph.microsoft.com/.default'],
+	};
+
+	const tokenResponse = await msalClient.acquireTokenByClientCredential(
+		tokenRequest,
+	);
+	const accessToken = tokenResponse?.accessToken;
+
+	if (!accessToken) {
+		// TODO: should be an error
 		return false;
 	}
 
-	const jsonResult = await tryCatch(fetchResult.data.json());
-	if (jsonResult.error) {
-		// TODO: should be an ERROR
+	const graph = graphClientWithToken(accessToken);
+
+	const filterQuery = `extension_${clientIdNoDashes}_discordId eq '${member.id}'`;
+
+	// TODO: missing error handling
+	const searchResponse = (await graph
+		.api('/users')
+		.filter(encodeURIComponent(filterQuery))
+		.select('id,displayName,userPrincipalName,surname,givenName,mail')
+		.get()
+		.catch((r) => {
+			console.log(r);
+		})) as UsersSearchResponse;
+
+	if (searchResponse.value && searchResponse.value.length > 0) {
+		// User found – they are authenticated (i.e. have completed the OAuth flow)
+		return true;
+	}
+	else {
+		// No user found with that Discord ID
 		return false;
 	}
-	const user = jsonResult.data.user;
-	return user != null;
 }
+
 
 async function handleDiscordStatus(member: GuildMember): Promise<boolean> {
 	if (member.nickname == null) return false;
@@ -62,7 +91,7 @@ async function handleDiscordStatus(member: GuildMember): Promise<boolean> {
 	// TODO: should be an ERROR
 	if (departmentMap.error != null) return false;
 
-	const allDepartmentsResult = await getAllDepartments(departmentMap.data);
+	const allDepartmentsResult = getAllDepartments(departmentMap.data);
 	// TODO: should be an ERROR
 	if (allDepartmentsResult.error) return false;
 
@@ -71,7 +100,7 @@ async function handleDiscordStatus(member: GuildMember): Promise<boolean> {
 			allDepartmentsResult.data.includes(r.name),
 		) != null;
 
-	const allPostfixesResult = await getAllPostfixes(departmentMap.data);
+	const allPostfixesResult = getAllPostfixes(departmentMap.data);
 	// TODO: should be an ERROR
 	if (allPostfixesResult.error) return false;
 
