@@ -1,4 +1,4 @@
 export interface DecodedState {
-  csrf: string;
-  discordId: string;
-};
+	csrf: string;
+	discordId: string;
+}

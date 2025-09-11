@@ -4,16 +4,16 @@ import { tryCatch } from './tryCatch';
 
 export async function getOrCreateRole(
 	member: GuildMember,
-	roleName: string,
+	roleName: string
 ): Promise<Result<Role, Error>> {
 	const existingRole = member.guild.roles.cache.find(
-		(r) => r.name === roleName,
+		(r) => r.name === roleName
 	);
 	if (existingRole) {
 		return { data: existingRole, error: null };
 	}
 	const roleResult = await tryCatch(
-		member.guild.roles.create({ name: roleName }),
+		member.guild.roles.create({ name: roleName })
 	);
 	if (roleResult.error) {
 		return { data: null, error: roleResult.error };

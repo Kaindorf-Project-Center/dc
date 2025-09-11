@@ -13,7 +13,7 @@ import { pendingByDiscordId } from '../interfaces/Pending';
 
 export async function handleAuthentication(
 	member: GuildMember,
-	interaction?: ChatInputCommandInteraction,
+	interaction?: ChatInputCommandInteraction
 ): Promise<Result<void, Error>> {
 	// DM-Channel erstellen
 	const dmChannelResult = await tryCatch(member.createDM());
@@ -26,7 +26,7 @@ export async function handleAuthentication(
 	const csrfToken = randomBytes(16).toString('hex');
 	const statePayload = { csrf: csrfToken, discordId: member.id };
 	const encodedState = Buffer.from(JSON.stringify(statePayload)).toString(
-		'base64',
+		'base64'
 	);
 
 	// Authentifizierungs-URL erstellen
@@ -41,20 +41,19 @@ export async function handleAuthentication(
 				flags: MessageFlags.IsComponentsV2,
 				components: [container],
 				withResponse: true,
-			}),
+			})
 		);
 		if (replyResult.error) {
 			return { data: null, error: replyResult.error };
 		}
 
 		message = replyResult.data.resource!.message!;
-	}
-	else {
+	} else {
 		const sendResult = await tryCatch(
 			dmChannel.send({
 				flags: MessageFlags.IsComponentsV2,
 				components: [container],
-			}),
+			})
 		);
 		if (sendResult.error) {
 			return { data: null, error: sendResult.error };
@@ -73,19 +72,18 @@ export async function handleAuthentication(
 		time: 60000 * 5,
 	});
 
-	collector.on('end', async (_collected, reason) => {
+	collector.on('end', (_collected, reason) => {
 		if (reason === 'time') {
 			const timeoutContainer = createTimeoutContainer();
-
-			await tryCatch(message.edit({ components: [timeoutContainer] }));
-
-			console.log(
-				`Verifizierung für ${member.user.username} hat zu lange gedauert.`,
-			);
-		}
-		else {
+			void tryCatch(message.edit({ components: [timeoutContainer] }))
+				.then(() => {
+					console.log(
+						`Verifizierung für ${member.user.username} hat zu lange gedauert.`
+					);
+				})
+				.catch(console.error);
+		} else {
 			console.log(reason);
-
 			console.log(`Collector für ${member.user.username} beendet.`);
 		}
 	});

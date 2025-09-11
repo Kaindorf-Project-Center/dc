@@ -3,12 +3,12 @@ import type { Result } from '../../utils/tryCatch';
 import { tryCatch } from '../../utils/tryCatch';
 
 export const getAppToken = async (
-	msalClient: ConfidentialClientApplication,
+	msalClient: ConfidentialClientApplication
 ): Promise<Result<string, Error>> => {
 	const tokenResponse = await tryCatch(
 		msalClient.acquireTokenByClientCredential({
 			scopes: ['https://graph.microsoft.com/.default'],
-		}),
+		})
 	);
 
 	if (tokenResponse.error) return { data: null, error: tokenResponse.error };

@@ -4,8 +4,8 @@ import type { Result } from './tryCatch';
 import { tryCatch } from './tryCatch';
 
 export interface DepartmentDetails {
-  department: string;
-  longname: string;
+	department: string;
+	longname: string;
 }
 
 /** Laufzeit-Validierung für DepartmentDetails */
@@ -17,7 +17,7 @@ function isDepartmentDetails(value: unknown): value is DepartmentDetails {
 
 /** Laufzeit-Validierung für das gesamte Mapping */
 function isDepartmentMapping(
-	value: unknown,
+	value: unknown
 ): value is Record<string, DepartmentDetails> {
 	if (typeof value !== 'object' || value === null) return false;
 	const obj = value as Record<string, unknown>;
@@ -25,10 +25,10 @@ function isDepartmentMapping(
 }
 
 export async function getMappingForLetter(
-	letter: string,
+	letter: string
 ): Promise<Result<DepartmentDetails, Error>> {
 	const fileResult = await tryCatch(
-		fsPromises.readFile('./shorthand-role-mapping.yaml', 'utf8'),
+		fsPromises.readFile('./shorthand-role-mapping.yaml', 'utf8')
 	);
 	if (fileResult.error) {
 		return { data: null, error: fileResult.error };
@@ -49,39 +49,38 @@ export async function getMappingForLetter(
 			return { data: entry, error: null };
 		}
 		return { data: null, error: new Error('Mapping not found for letter') };
-	}
-	catch (err) {
+	} catch (err) {
 		return { data: null, error: err as Error };
 	}
 }
 
 export function getAllDepartments(
-	departmentMap: Map<string, DepartmentDetails>,
+	departmentMap: Map<string, DepartmentDetails>
 ): Result<string[], Error> {
 	const departments = Array.from(departmentMap.values()).map(
-		(entry) => entry.department,
+		(entry) => entry.department
 	);
 	const uniqueDepartments = Array.from(new Set(departments));
 	return { data: uniqueDepartments, error: null };
 }
 
 export function getAllPostfixes(
-	departmentMap: Map<string, DepartmentDetails>,
+	departmentMap: Map<string, DepartmentDetails>
 ): Result<string[], Error> {
 	const longnames = Array.from(departmentMap.values()).map(
-		(entry) => entry.longname,
+		(entry) => entry.longname
 	);
 	return { data: longnames, error: null };
 }
 
 export async function parseYamlToMap(): Promise<
-  Result<Map<string, DepartmentDetails>, Error>
-  > {
+	Result<Map<string, DepartmentDetails>, Error>
+> {
 	const fileResult = await tryCatch(
 		fsPromises.readFile(
 			'./apps/discord-bot/shorthand-role-mapping.yaml',
-			'utf8',
-		),
+			'utf8'
+		)
 	);
 
 	if (fileResult.error) {
@@ -104,8 +103,7 @@ export async function parseYamlToMap(): Promise<
 		}
 
 		return { data: resultMap, error: null };
-	}
-	catch (err) {
+	} catch (err) {
 		return { data: null, error: err as Error };
 	}
 }

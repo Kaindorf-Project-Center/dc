@@ -46,7 +46,7 @@ export const callback = async (req: Request, res: Response) => {
 	}
 
 	const decodedState = JSON.parse(
-		Buffer.from(encodedState as string, 'base64').toString('utf-8'),
+		Buffer.from(encodedState as string, 'base64').toString('utf-8')
 	) as DecodedState;
 
 	// Retrieve the CSRF token and Discord ID from the decoded state
@@ -61,7 +61,7 @@ export const callback = async (req: Request, res: Response) => {
 	};
 
 	const tokenResponse = await tryCatch(
-		msalClient.acquireTokenByCode(tokenRequest),
+		msalClient.acquireTokenByCode(tokenRequest)
 	);
 
 	if (tokenResponse.error != null) {
@@ -84,7 +84,7 @@ export const callback = async (req: Request, res: Response) => {
 		.catch(() => {
 			return res.status(500).render('error', {
 				message:
-          'Das authetifizierte Profil konnte nicht von Microsoft geladen werden.',
+					'Das authetifizierte Profil konnte nicht von Microsoft geladen werden.',
 				statusCode: '500',
 			});
 		})) as UserData;
@@ -104,17 +104,17 @@ export const callback = async (req: Request, res: Response) => {
 	const setUserDiscordIdResult = await setUserDiscordId(
 		appToken.data,
 		userId,
-		discordId,
+		discordId
 	);
 
 	if (
 		setUserDiscordIdResult.error &&
-    setUserDiscordIdResult.error.message === 'discordId already used'
+		setUserDiscordIdResult.error.message === 'discordId already used'
 	) {
 		console.error(setUserDiscordIdResult.error);
 		return res.status(400).render('error', {
 			message:
-        'Der verwendete Discord-Account ist bereits mit einem anderen Microsoft-Schulkonto Assoziiert.',
+				'Der verwendete Discord-Account ist bereits mit einem anderen Microsoft-Schulkonto Assoziiert.',
 			statusCode: '400',
 		});
 	}
@@ -142,12 +142,10 @@ export const callback = async (req: Request, res: Response) => {
 	// do roles / nickname; edit UI
 	try {
 		await finishVerification(member, message, userData);
-	}
-	catch (e) {
+	} catch (e) {
 		console.log(e);
 		await message.edit({ components: [createErrorContainer()] });
-	}
-	finally {
+	} finally {
 		pendingByDiscordId.delete(discordId);
 	}
 

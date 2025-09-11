@@ -16,8 +16,7 @@ export const loadEvents = (client: Client) => {
 		const event: Event<any> = require(filePath).default;
 		if (event.once) {
 			client.once(event.name, (...args) => event.execute(...args));
-		}
-		else {
+		} else {
 			client.on(event.name, (...args) => event.execute(...args));
 		}
 	}
@@ -39,7 +38,7 @@ export const loadCommands = (): Collection<string, Command> => {
 
 		if (command.default == null || command.default.data == null) {
 			console.error(
-				`Command in file ${file} is missing a 'data.name' property.`,
+				`Command in file ${file} is missing a 'data.name' property.`
 			);
 			continue;
 		}

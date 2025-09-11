@@ -7,7 +7,7 @@ import type { UsersSearchResponse } from '../interfaces/UsersSearchResponse';
 export async function setUserDiscordId(
 	accessToken: string,
 	userId: string,
-	discordId: string,
+	discordId: string
 ): Promise<Result<true, Error>> {
 	console.log(`Updating discordId for user: ${userId}...`);
 
@@ -18,11 +18,11 @@ export async function setUserDiscordId(
 	const filterQuery = `extension_${clientIdNoDashes}_discordId eq '${discordId}'`;
 
 	// TODO: missing error handling
-	const searchResponse = await graph
+	const searchResponse = (await graph
 		.api('/users')
 		.filter(encodeURIComponent(filterQuery))
 		.select('id,displayName,userPrincipalName,surname,givenName,mail')
-		.get() as UsersSearchResponse;
+		.get()) as UsersSearchResponse;
 
 	if (searchResponse.value && searchResponse.value.length > 0) {
 		const user: User = searchResponse.value[0];
@@ -31,8 +31,7 @@ export async function setUserDiscordId(
 		}
 		console.log('A user with that Discord ID already exists.');
 		return { data: null, error: new Error('discordId already used') };
-	}
-	else {
+	} else {
 		graph
 			.api(`/users${userId}`)
 			.update({ [`extension_${clientIdNoDashes}_discordId`]: discordId })

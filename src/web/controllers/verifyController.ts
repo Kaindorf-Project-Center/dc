@@ -17,7 +17,7 @@ export const verify = async (req: Request, res: Response) => {
 
 	try {
 		const tokenResponse = await msalClient.acquireTokenByClientCredential(
-			tokenRequest,
+			tokenRequest
 		);
 		const accessToken = tokenResponse?.accessToken;
 
@@ -30,14 +30,14 @@ export const verify = async (req: Request, res: Response) => {
 		const filterQuery = `extension_${clientIdNoDashes}_discordId eq '${discordId}'`;
 
 		// TODO: missing error handling
-		const searchResponse = await graph
+		const searchResponse = (await graph
 			.api('/users')
 			.filter(encodeURIComponent(filterQuery))
 			.select('id,displayName,userPrincipalName,surname,givenName,mail')
 			.get()
-			.catch(r => {
+			.catch((r) => {
 				console.log(r);
-			}) as UsersSearchResponse;
+			})) as UsersSearchResponse;
 
 		if (searchResponse.value && searchResponse.value.length > 0) {
 			// User found – they are authenticated (i.e. have completed the OAuth flow)
@@ -45,15 +45,13 @@ export const verify = async (req: Request, res: Response) => {
 				message: 'User is authenticated',
 				user: searchResponse.value[0],
 			});
-		}
-		else {
+		} else {
 			// No user found with that Discord ID
 			return res
 				.status(404)
 				.json({ message: 'User not found or not authenticated.' });
 		}
-	}
-	catch (error) {
+	} catch (error) {
 		console.error('Error verifying user:', error);
 		return res.status(500).json({ error: 'Internal server error.' });
 	}

@@ -17,7 +17,7 @@ export function createVerifyButton(memberId: string): ButtonBuilder {
 }
 
 export function createActionRow(
-	buttons: ButtonBuilder[],
+	buttons: ButtonBuilder[]
 ): ActionRowBuilder<ButtonBuilder> {
 	const row = new ActionRowBuilder<ButtonBuilder>().addComponents(buttons);
 	return row;
