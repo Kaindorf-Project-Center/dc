@@ -1,57 +1,57 @@
 import type { ExtensionProperty } from '@microsoft/microsoft-graph-types';
 import { config } from '../../config';
+import { graphClientWithToken } from './graph';
+import type { ExtensionPropertiesResponse } from '../interfaces/ExtensionPropertiesResponse';
+
 // TODO: error handling
 export async function createExtensionAttributeIfNotExists(accessToken: string) {
 	try {
 		console.log('Checking if extension attribute \'discordId\' exists...');
 
-		// Step 1: Check existing attributes
-		const checkResponse = await fetch(
-			`https://graph.microsoft.com/v1.0/applications/${config.MICROSOFT_OBJECT_ID}/extensionProperties`,
-			{
-				method: 'GET',
-				headers: {
-					Authorization: `Bearer ${accessToken}`,
-					'Content-Type': 'application/json',
-				},
-			},
-		);
 
-		const checkData = await checkResponse.json();
+		const graph = graphClientWithToken(accessToken);
 
-		const existingAttribute = checkData.value?.find((attr: ExtensionProperty) =>
+		// Check existing attributes
+		const checkResponse = await graph
+		  .api(`/applications/${config.MICROSOFT_OBJECT_ID}/extensionProperties`)
+			.get()
+			.catch((r) => {console.error(r);}) as ExtensionPropertiesResponse;
+
+		const existingAttribute = checkResponse.value.find((attr: ExtensionProperty) =>
 			attr.name?.includes('discordId'),
 		);
 
 		if (existingAttribute) {
 			console.log('Extension attribute \'discordId\' already exists.');
-			return existingAttribute; // Skip creation
+			// Skip creation
+			return existingAttribute;
 		}
 
-		// Step 3: Create the attribute if not found
+		// Create the attribute if not found
 		console.log('Creating new extension attribute \'discordId\'...');
 
-		const createResponse = await fetch(
-			`https://graph.microsoft.com/v1.0/applications/${config.MICROSOFT_OBJECT_ID}/extensionProperties`,
-			{
-				method: 'POST',
-				headers: {
-					Authorization: `Bearer ${accessToken}`,
-					'Content-Type': 'application/json',
-				},
-				body: JSON.stringify({
-					name: 'discordId',
-					dataType: 'String',
-					targetObjects: ['User'],
-				}),
-			},
-		);
+		const extensionProperty = {
+    	name: 'discordId',
+    	dataType: 'String',
+    	targetObjects: ['User'],
+		};
 
-		const createData = await createResponse.json();
-		console.log('Created Extension Attribute:', createData);
-		return createData;
+		const createResponse = await graph
+			.api(`/applications/${config.MICROSOFT_OBJECT_ID}/extensionProperties`)
+			.post(extensionProperty) as ExtensionProperty;
+
+		console.log(createResponse);
+
+		// code to delete an extension attribute if matze makes faxen
+		// const deleteResponse = await graph
+		// 	.api(`/applications/${config.MICROSOFT_OBJECT_ID}/extensionProperties/${createResponse.id}`)
+		// 	.delete().catch(r => {console.log(r);});
+
+		console.log('Created Extension Attribute:', createResponse);
+		return createResponse;
 	}
-	catch (error) {
+	catch (e) {
+		console.error(e);
 		throw new Error('Failed to find or create Extension Attribute.');
 	}
 }
