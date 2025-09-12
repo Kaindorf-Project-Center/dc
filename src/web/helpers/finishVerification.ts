@@ -6,20 +6,20 @@ import {
 	createAuthErrorContainer,
 	createAuthSuccessContainer,
 } from '../../utils/authComponents';
+import type { TFunction } from 'src/i18n/i18n';
 
 export async function finishVerification(
 	member: GuildMember,
 	message: Message,
 	user: { givenName: string; surname: string; userPrincipalName: string },
+	t: TFunction,
 ) {
 	const shorthand = user.userPrincipalName.split('@')[0];
 	const userShorthandMatch = shorthand.match(/[a-z]{5}([abcdnmzy])(\d\d)/);
 	if (!userShorthandMatch) {
 		await tryCatch(
 			message.edit({
-				components: [
-					createAuthErrorContainer('Dein Kürzel entspricht nicht dem Muster!'),
-				],
+				components: [createAuthErrorContainer(t, t('verify.wrongAbbr'))],
 			}),
 		);
 		return;
@@ -39,7 +39,7 @@ export async function finishVerification(
 			message.edit({
 				components: [
 					createAuthErrorContainer(
-						'Abteilungsrolle konnte nicht hinzugefügt werden',
+						t, 'Abteilungsrolle konnte nicht hinzugefügt werden',
 					),
 				],
 			}),
@@ -53,7 +53,7 @@ export async function finishVerification(
 			message.edit({
 				components: [
 					createAuthErrorContainer(
-						'Klassenrollen konnte nicht hinzugefügt werden',
+						t, 'Klassenrollen konnte nicht hinzugefügt werden',
 					),
 				],
 			}),
@@ -69,12 +69,12 @@ export async function finishVerification(
 		await tryCatch(
 			message.edit({
 				components: [
-					createAuthErrorContainer('Spitzname konnte nicht gesetzt werden'),
+					createAuthErrorContainer(t, 'Spitzname konnte nicht gesetzt werden'),
 				],
 			}),
 		);
 		throw new Error('couldnt set nickname');
 	}
 
-	await tryCatch(message.edit({ components: [createAuthSuccessContainer()] }));
+	await tryCatch(message.edit({ components: [createAuthSuccessContainer(t)] }));
 }

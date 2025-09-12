@@ -10,16 +10,21 @@ import { config } from '../config';
 import { msalClient } from 'src/server';
 import { graphClientWithToken } from 'src/web/helpers/graph';
 import type { UsersSearchResponse } from 'src/web/interfaces/UsersSearchResponse';
+import { getT } from 'src/i18n/language';
 
 export async function handleStatus(
 	member: GuildMember,
 	interaction: ChatInputCommandInteraction,
 ): Promise<Result<void, Error>> {
+	const t = getT(interaction);
+
 	const microsoftStatus = await handleMicrosoftStatus(member);
 	const microsoftStatusEmbed = new EmbedBuilder()
-		.setTitle('Microsoft status: ' + (microsoftStatus ? '✅' : '❌'))
+		.setTitle(
+			'Microsoft ' + t('status.title') + ': ' + (microsoftStatus ? '✅' : '❌'),
+		)
 		.setDescription(
-			microsoftStatus ? 'authentifiziert' : 'nicht authentifiziert',
+			microsoftStatus ? t('status.authenticatd') : t('status.notAuthenticated'),
 		)
 		.setColor(microsoftStatus ? 'Green' : 'Red');
 
@@ -27,8 +32,12 @@ export async function handleStatus(
 	const discordStatus = await handleDiscordStatus(member);
 
 	const discordStatusEmbed = new EmbedBuilder()
-		.setTitle('Discord status: ' + (discordStatus ? '✅' : '❌'))
-		.setDescription(discordStatus ? 'authentifiziert' : 'nicht authentifiziert')
+		.setTitle(
+			'Discord ' + t('status.title') + ': ' + (discordStatus ? '✅' : '❌'),
+		)
+		.setDescription(
+			discordStatus ? t('status.authenticatd') : t('status.notAuthenticated'),
+		)
 		.setColor(discordStatus ? 'Green' : 'Red');
 
 	await interaction.reply({

@@ -1,24 +1,41 @@
 <!doctype html>
-<html lang="de">
+<html lang="<%= lang %>">
+
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>Fehler</title>
-    <link rel="stylesheet" href="/static/styles.css">
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width,initial-scale=1">
+	<title>
+		<%= title %>
+	</title>
+	<link rel="stylesheet" href="/static/styles.css">
 </head>
+
 <body>
-  <div class="cards">
-	<div class="card"></div>
-	<div class="card card--glass">
-		<div class="card__content">
-			<h1 class="card__title">Da ist was schiefgelaufen</h1>
-			<div class="card__logo"><%= statusCode %></div>
-			<p class="card__description">Beim Versuch, dein Discord-Profil mit deinem Schul-Microsoft-Konto zu verknüpfen, ist ein Fehler aufgetreten.<p/>
-			<p class="card__description">Details: <%= message %><p/>
-			<p class="card__url">Für Hilfe wende dich an einen Sys-Admin oder Praktikantenkarli</p>
+	<div class="cards">
+		<div class="card"></div>
+		<div class="card card--glass">
+			<div class="card__content">
+				<h1 class="card__title">
+					<%= heading %>
+				</h1>
+				<div class="card__logo">
+					<%= statusCode %>
+				</div>
+				<p class="card__description">
+					<%= description %>
+				</p>
+				<% if (details) { %>
+					<p class="card__description">
+						<%= detailsLabel %>
+							<%= details %>
+					</p>
+					<% } %>
+						<p class="card__url">
+							<%= help %>
+						</p>
+			</div>
 		</div>
 	</div>
-</div>
 </body>
-</html>
 
+</html>

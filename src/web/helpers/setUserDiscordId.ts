@@ -3,6 +3,9 @@ import { config } from '../../config';
 import type { Result } from '../../utils/tryCatch';
 import { graphClientWithToken } from './graph';
 import type { UsersSearchResponse } from '../interfaces/UsersSearchResponse';
+import { createT } from 'src/i18n/i18n';
+import { resolveLangByLocale } from 'src/i18n/language';
+import { pendingAuthByDiscordId } from 'src/interfaces/Pending';
 
 export async function setUserDiscordId(
 	accessToken: string,
@@ -11,6 +14,9 @@ export async function setUserDiscordId(
 	discordId: string | null,
 ): Promise<Result<true, Error>> {
 	console.log(`Updating discordId for user: ${userId}...`);
+
+	const p = pendingAuthByDiscordId.get(discordId);
+	const t = createT(resolveLangByLocale(p.locale));
 
 	const clientIdNoDashes = config.MICROSOFT_CLIENT_ID.replace(/-/g, '');
 
@@ -32,22 +38,22 @@ export async function setUserDiscordId(
 				return { data: true, error: null };
 			}
 			console.log('A user with that Discord ID already exists.');
-			return { data: null, error: new Error('discordId already used') };
+			return { data: null, error: new Error(t('callback.discordIdAlreadyUsed')) };
+		} else {
+			graph
+				.api(`/users${userId}`)
+				.update({ [`extension_${clientIdNoDashes}_discordId`]: discordId })
+				.catch((r) => {
+					console.log(`Failed to update discordId ${r}`);
+					return {
+						data: null,
+						error: new Error(t('common.errors.patchUser')),
+					};
+				});
+
 		}
+		console.log(`Successfully updated discordId for ${userId}`);
 	}
-
-	graph
-		.api(`/users/${userId}`)
-		.update({ [`extension_${clientIdNoDashes}_discordId`]: discordId })
-		.catch((r) => {
-			console.log(`Failed to update discordId ${r}`);
-			return {
-				data: null,
-				error: new Error(`Failed to patch user: ${r}`),
-			};
-		});
-
-	console.log(`Successfully updated discordId for ${userId}`);
 
 	return { data: true, error: null };
 }

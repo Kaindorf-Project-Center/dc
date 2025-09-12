@@ -1,4 +1,8 @@
-import type { GuildMember, ChatInputCommandInteraction } from 'discord.js';
+import type {
+	GuildMember,
+	ChatInputCommandInteraction,
+	Interaction,
+} from 'discord.js';
 import { MessageFlags } from 'discord.js';
 import { randomBytes } from 'crypto';
 
@@ -10,6 +14,7 @@ import {
 } from '../utils/authComponents';
 import { getAuthUrl } from '../utils/getAuthUrl';
 import { pendingAuthByDiscordId } from '../interfaces/Pending';
+import { getT } from 'src/i18n/language';
 
 export async function handleAuthentication(
 	member: GuildMember,
@@ -32,7 +37,10 @@ export async function handleAuthentication(
 	// Authentifizierungs-URL erstellen
 	const authUrl = getAuthUrl(encodedState);
 
-	const container = createAuthContainer(authUrl);
+	const container = createAuthContainer(
+		authUrl,
+		getT(interaction ? (interaction as Interaction) : undefined),
+	);
 
 	let message;
 	if (interaction) {
@@ -66,6 +74,7 @@ export async function handleAuthentication(
 		channelId: dmChannel.id,
 		messageId: message.id,
 		memberId: member.id,
+		locale: interaction?.locale,
 	});
 
 	const collector = dmChannel.createMessageComponentCollector({
@@ -74,7 +83,10 @@ export async function handleAuthentication(
 
 	collector.on('end', (_collected, reason) => {
 		if (reason === 'time') {
-			const timeoutContainer = createAuthTimeoutContainer();
+			const timeoutContainer = createAuthTimeoutContainer(
+				getT(interaction ? (interaction as Interaction) : undefined),
+			);
+
 			void tryCatch(message.edit({ components: [timeoutContainer] }))
 				.then(() => {
 					console.log(

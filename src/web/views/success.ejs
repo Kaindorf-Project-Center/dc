@@ -1,31 +1,43 @@
 <!doctype html>
-<html lang="de">
+<html lang="<%= lang %>">
+
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>Erfolg</title>
-    <link rel="stylesheet" href="/static/styles.css">
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width,initial-scale=1">
+	<title>
+		<%= title %>
+	</title>
+	<link rel="stylesheet" href="/static/styles.css">
 </head>
+
 <body>
-  <div class="cards">
-	<div class="card"></div>
-	<div class="card card--glass">
-		<div class="card__content">
-			<h1 class="card__title">Das hat funktioniert</h1>
-			<div class="card__logo">200</div>
-			<p class="card__description"><%= message %></p>
-			<div class="button-align">
-			<div class="button-wrap">
-			<button onclick="window.location='discord://';"> 
-				Öffne Discord
-			</button>
-			<div class="button-shadow"></div>
+	<div class="cards">
+		<div class="card"></div>
+		<div class="card card--glass">
+			<div class="card__content">
+				<h1 class="card__title">
+					<%= heading %>
+				</h1>
+				<div class="card__logo">
+					<%= statusCode %>
+				</div>
+				<p class="card__description">
+					<%= description %>
+				</p>
+				<div class="button-align">
+					<div class="button-wrap">
+						<button onclick="window.location='discord://';">
+							<%= openDiscord %>
+						</button>
+						<div class="button-shadow"></div>
+					</div>
+				</div>
+				<p class="card__url">
+					<%= help %>
+				</p>
 			</div>
-			</div>
-			<p class="card__url">Für Hilfe wende dich an einen Sys-Admin oder Praktikantenkarli</p>
 		</div>
 	</div>
-</div>
 </body>
-</html>
 
+</html>

@@ -1,23 +1,23 @@
 import { ContainerBuilder, TextDisplayBuilder } from 'discord.js';
 import { createActionRow, createAuthButton } from './authButtons';
+import type * as i18n from 'src/i18n/i18n';
 
-export function createAuthContainer(url: string): ContainerBuilder {
-	const headerText = new TextDisplayBuilder().setContent(
-		'**Erfülle** die folgende **Anmeldung um Zugang** zum Kaindorf-Discord-Server **zu erhalten**:',
-	);
+export function createAuthContainer(
+	url: string,
+	t: i18n.TFunction,
+): ContainerBuilder {
+	const headerText = new TextDisplayBuilder().setContent(t('auth.header'));
 
 	const firstHeaderText = new TextDisplayBuilder().setContent(
-		'## Anmeldung mit Microsoft',
+		t('auth.msHeader'),
 	);
 
 	const firstContentText = new TextDisplayBuilder().setContent(
-		'**Drücke** den folgenden **Link**, und melde dich mit deinem von der Schule bereitgestellten Microsoft-Konto an.',
+		t('auth.msContent'),
 	);
-	const firstSubText = new TextDisplayBuilder().setContent(
-		'-# Dadurch wird deine Discord-ID mit deinem Microsoft-Konto der Schule assoziiert und du erhältst die richtigen Rollen zu deinem Jahrgang und Abteilung, zusätzlich wird dein Spitzname auf dem Server auf deinen **Echten Namen** gesetzt.',
-	);
+	const firstSubText = new TextDisplayBuilder().setContent(t('auth.msSub'));
 
-	const authButton = createAuthButton(url);
+	const authButton = createAuthButton(url, t);
 
 	const actionRowResult = createActionRow([authButton]);
 
@@ -34,17 +34,17 @@ export function createAuthContainer(url: string): ContainerBuilder {
 	return container;
 }
 
-export function createAuthSuccessContainer(): ContainerBuilder {
+export function createAuthSuccessContainer(t: i18n.TFunction): ContainerBuilder {
 	const firstHeaderText = new TextDisplayBuilder().setContent(
-		'## Verifizierung Erfolgreich',
+		t('auth.successHeader'),
 	);
 
 	const firstContentText = new TextDisplayBuilder().setContent(
-		'Die Verifizierung war erfolgreich, du hast jetzt vollen Zugriff auf den Server und kannst dich mit den anderen Schülern und ex-Schülern unterhalten.',
+		t('auth.successBody'),
 	);
 
 	const subContentText = new TextDisplayBuilder().setContent(
-		'### Viel Spaß! 🥳',
+		t('auth.successSub'),
 	);
 
 	const container = new ContainerBuilder()
@@ -58,13 +58,16 @@ export function createAuthSuccessContainer(): ContainerBuilder {
 	return container;
 }
 
-export function createAuthErrorContainer(reason?: string): ContainerBuilder {
+export function createAuthErrorContainer(
+	t: i18n.TFunction,
+	reason?: string,
+): ContainerBuilder {
 	const firstHeaderText = new TextDisplayBuilder().setContent(
-		'## Verifizierung Fehlgeschlagen',
+		t('auth.failHeader'),
 	);
 
 	const firstContentText = new TextDisplayBuilder().setContent(
-		'Es ist ein Fehler bei der Verifizierung aufgetreten. Versuche es später erneut oder Wende dich an einen Sys-Admin oder Praktikanten für Hilfe.',
+		t('common.errors.verifyFailed'),
 	);
 
 	const container = new ContainerBuilder()
@@ -79,13 +82,13 @@ export function createAuthErrorContainer(reason?: string): ContainerBuilder {
 	return container;
 }
 
-export function createAuthTimeoutContainer(): ContainerBuilder {
+export function createAuthTimeoutContainer(t: i18n.TFunction): ContainerBuilder {
 	const firstHeaderText = new TextDisplayBuilder().setContent(
-		'## Authentifizierung abgelaufen',
+		t('auth.timeoutHeader'),
 	);
 
 	const firstContentText = new TextDisplayBuilder().setContent(
-		'Die Authentifizierung ist abgelaufen. Bitte verwenden Sie /authenticate, um es erneut zu versuchen.',
+		t('common.errors.authExpired'),
 	);
 
 	const container = new ContainerBuilder()

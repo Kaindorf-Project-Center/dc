@@ -1,7 +1,8 @@
 import { ContainerBuilder, TextDisplayBuilder } from 'discord.js';
 import { createActionRow, createAuthButton } from './authButtons';
+import type { TFunction } from 'src/i18n/i18n';
 
-export function createUnauthContainer(url: string): ContainerBuilder {
+export function createUnauthContainer(url: string, t: TFunction): ContainerBuilder {
 	const headerText = new TextDisplayBuilder().setContent(
 		'**Erfülle** die folgende Anmeldung **um den Zugang** zum Kaindorf-Discord-Server **zu verlieren**:',
 	);
@@ -17,7 +18,7 @@ export function createUnauthContainer(url: string): ContainerBuilder {
 		'-# Dadurch wird deine Discord-ID von deinem Microsoft-Konto der Schule entfernt und dein Spitzname und deine Rollen werden zurückgesetzt, dadurch du verlierst den Zugang zum Kaindorf-Discord-Server',
 	);
 
-	const authButton = createAuthButton(url);
+	const authButton = createAuthButton(url, t);
 
 	const actionRowResult = createActionRow([authButton]);
 

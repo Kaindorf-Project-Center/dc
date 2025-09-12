@@ -4,17 +4,22 @@ import { handleAuthentication } from '../handlers/authHandler';
 import type { Command } from '../interfaces/Command';
 import { config } from '../config';
 import { tryCatch } from '../utils/tryCatch';
+import { getT } from 'src/i18n/language';
 
 const authenticateCommand: Command = {
 	data: new SlashCommandBuilder()
 		.setName('authenticate')
 		.setContexts(InteractionContextType.BotDM)
-		.setDescription('Startet manuell den Authentifizierungsprozess.'),
+		.setDescription('Starts the manual authentication process'),
 	async execute(interaction: ChatInputCommandInteraction): Promise<void> {
 		const guild = interaction.client.guilds.cache.get(config.GUILD_ID);
+		const t = getT(interaction);
 
 		if (guild == null) {
-			await interaction.reply({ content: 'Guild not found.', ephemeral: true });
+			await interaction.reply({
+				content: t('common.errors.guildNotFound'),
+				ephemeral: true,
+			});
 			return;
 		}
 
@@ -23,7 +28,10 @@ const authenticateCommand: Command = {
 		);
 		if (memberResult.error != null) {
 			await tryCatch(
-				interaction.reply({ content: 'Member not found.', ephemeral: true }),
+				interaction.reply({
+					content: t('common.errors.memberNotFound'),
+					ephemeral: true,
+				}),
 			);
 			return;
 		}
