@@ -20,6 +20,7 @@
           act
 
           bun
+          icu74
 
           eslint
           (nodePackages.prettier.overrideAttrs (oldAttrs: {
