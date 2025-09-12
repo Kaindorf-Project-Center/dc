@@ -11,6 +11,8 @@ import { client } from '../../index';
 import type { UserData } from '../interfaces/UserData';
 import type { DecodedState } from '../interfaces/DecodedState';
 import { pendingByDiscordId } from '../../interfaces/Pending';
+import { resolveLangByLocale } from 'src/i18n/language';
+import { createT } from 'src/i18n/i18n';
 
 /* export const authenticate = async (req: Request, res: Response) => {
   const state = Math.random().toString(36).substring(7);
@@ -37,11 +39,19 @@ import { pendingByDiscordId } from '../../interfaces/Pending';
 export const callback = async (req: Request, res: Response) => {
 	const { code, state: encodedState } = req.query;
 
+	const fallbackLang = 'en' as const;
+
 	if (!code || !encodedState) {
-		// return res.status(303).redirect('discord://');
+		const t = createT(fallbackLang);
 		return res.status(400).render('error', {
-			message: 'Missing code or state.',
+			lang: fallbackLang,
+			title: t('web.error.title'),
+			heading: t('web.error.heading'),
 			statusCode: '400',
+			description: t('web.error.genericDescription'),
+			detailsLabel: t('web.error.detailsLabel'),
+			details: 'missing code or state',
+			help: t('web.common.help'),
 		});
 	}
 
@@ -51,8 +61,23 @@ export const callback = async (req: Request, res: Response) => {
 
 	// Retrieve the CSRF token and Discord ID from the decoded state
 	const { csrf, discordId } = decodedState;
-	console.log('CSRF Token:', csrf);
-	console.log('Discord ID:', discordId);
+
+	const p = pendingByDiscordId.get(discordId);
+	const t = createT(resolveLangByLocale(p?.locale));
+	const lang = p ? resolveLangByLocale(p.locale) : fallbackLang;
+
+	if (!p || p.csrf !== csrf) {
+		return res.status(400).render('error', {
+			lang,
+			title: t('web.error.title'),
+			heading: t('web.error.heading'),
+			statusCode: '400',
+			description: t('web.error.genericDescription'),
+			detailsLabel: t('web.error.detailsLabel'),
+			details: t('common.errors.invalidOrExpiredState'),
+			help: t('web.common.help'),
+		});
+	}
 
 	const tokenRequest = {
 		code: code as string,
@@ -67,8 +92,14 @@ export const callback = async (req: Request, res: Response) => {
 	if (tokenResponse.error != null) {
 		console.error(tokenResponse.error);
 		return res.status(500).render('error', {
-			message: 'Failed to acquire access token.',
+			lang,
+			title: t('web.error.title'),
+			heading: t('web.error.heading'),
 			statusCode: '500',
+			description: t('web.error.genericDescription'),
+			detailsLabel: t('web.error.detailsLabel'),
+			details: t('callback.accessTokenError'),
+			help: t('web.common.help'),
 		});
 	}
 
@@ -83,8 +114,7 @@ export const callback = async (req: Request, res: Response) => {
 		.get()
 		.catch(() => {
 			return res.status(500).render('error', {
-				message:
-					'Das authetifizierte Profil konnte nicht von Microsoft geladen werden.',
+				message: t('callback.msLoadError'),
 				statusCode: '500',
 			});
 		})) as UserData;
@@ -96,8 +126,14 @@ export const callback = async (req: Request, res: Response) => {
 
 	if (appToken.error != null) {
 		return res.status(500).render('error', {
-			message: 'Failed to get AppToken',
+			lang,
+			title: t('web.error.title'),
+			heading: t('web.error.heading'),
 			statusCode: '500',
+			description: t('web.error.genericDescription'),
+			detailsLabel: t('web.error.detailsLabel'),
+			details: t('callback.appTokenError'),
+			help: t('web.common.help'),
 		});
 	}
 
@@ -109,21 +145,18 @@ export const callback = async (req: Request, res: Response) => {
 
 	if (
 		setUserDiscordIdResult.error &&
-		setUserDiscordIdResult.error.message === 'discordId already used'
+		setUserDiscordIdResult.error.message === t('callback.discordIdAlreadyUsed')
 	) {
 		console.error(setUserDiscordIdResult.error);
 		return res.status(400).render('error', {
-			message:
-				'Der verwendete Discord-Account ist bereits mit einem anderen Microsoft-Schulkonto Assoziiert.',
+			lang,
+			title: t('web.error.title'),
+			heading: t('web.error.heading'),
 			statusCode: '400',
-		});
-	}
-
-	const p = pendingByDiscordId.get(discordId);
-	if (!p || p.csrf !== csrf) {
-		return res.status(400).render('error', {
-			message: 'Invalid or expired state.',
-			statusCode: '400',
+			description: t('web.error.genericDescription'),
+			detailsLabel: t('web.error.detailsLabel'),
+			details: t('callback.discordIdAlreadyUsed'),
+			help: t('web.common.help'),
 		});
 	}
 
@@ -133,23 +166,37 @@ export const callback = async (req: Request, res: Response) => {
 	const channel = await client.channels.fetch(p.channelId);
 	if (!channel?.isTextBased()) {
 		return res.status(500).render('error', {
-			message: 'Channel not text-based.',
+			lang,
+			title: t('web.error.title'),
+			heading: t('web.error.heading'),
 			statusCode: '500',
+			description: t('web.error.genericDescription'),
+			detailsLabel: t('web.error.detailsLabel'),
+			details: t('common.errors.channelNotTextBased'),
+			help: t('web.common.help'),
 		});
 	}
 	const message = await channel.messages.fetch(p.messageId);
 
 	// do roles / nickname; edit UI
 	try {
-		await finishVerification(member, message, userData);
+		await finishVerification(member, message, userData, t);
 	}
 	catch (e) {
 		console.log(e);
-		await message.edit({ components: [createErrorContainer()] });
+		await message.edit({ components: [createErrorContainer(t)] });
 	}
 	finally {
 		pendingByDiscordId.delete(discordId);
 	}
 
-	res.status(200).render('success');
+	return res.status(200).render('success', {
+		lang,
+		title: t('web.success.title'),
+		heading: t('web.success.heading'),
+		statusCode: t('web.success.code'),
+		description: t('web.success.description'),
+		openDiscord: t('web.success.openDiscord'),
+		help: t('web.common.help'),
+	});
 };

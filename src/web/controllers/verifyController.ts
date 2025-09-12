@@ -3,9 +3,14 @@ import type { Request, Response } from 'express';
 import { msalClient } from '../../server';
 import { graphClientWithToken } from '../helpers/graph';
 import type { UsersSearchResponse } from '../interfaces/UsersSearchResponse';
+import { pendingByDiscordId } from 'src/interfaces/Pending';
+import { createT } from 'src/i18n/i18n';
+import { resolveLangByLocale } from 'src/i18n/language';
 
 export const verify = async (req: Request, res: Response) => {
 	const { discordId } = req.params;
+	const p = pendingByDiscordId.get(discordId);
+	const t = createT(resolveLangByLocale(p?.locale));
 
 	// Remove hyphens from the client ID for proper extension attribute naming
 	const clientIdNoDashes = config.MICROSOFT_CLIENT_ID.replace(/-/g, '');
@@ -22,7 +27,7 @@ export const verify = async (req: Request, res: Response) => {
 		const accessToken = tokenResponse?.accessToken;
 
 		if (!accessToken) {
-			return res.status(500).json({ error: 'Failed to acquire access token.' });
+			return res.status(500).json({ error: t('callback.accessTokenError') });
 		}
 
 		const graph = graphClientWithToken(accessToken);
@@ -42,19 +47,17 @@ export const verify = async (req: Request, res: Response) => {
 		if (searchResponse.value && searchResponse.value.length > 0) {
 			// User found – they are authenticated (i.e. have completed the OAuth flow)
 			return res.json({
-				message: 'User is authenticated',
+				message: t('verify.authenticated'),
 				user: searchResponse.value[0],
 			});
 		}
 		else {
 			// No user found with that Discord ID
-			return res
-				.status(404)
-				.json({ message: 'User not found or not authenticated.' });
+			return res.status(404).json({ message: t('verify.notFoundOr404') });
 		}
 	}
 	catch (error) {
 		console.error('Error verifying user:', error);
-		return res.status(500).json({ error: 'Internal server error.' });
+		return res.status(500).json({ error: t('common.errors._505') });
 	}
 };
