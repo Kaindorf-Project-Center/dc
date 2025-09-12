@@ -26,11 +26,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: "18"
-
       - name: Set up Bun
         uses: oven-sh/setup-bun@v2
         with:
@@ -50,4 +45,4 @@ jobs:
         run: bun install
 
       - name: Run eslint
-        run: npx eslint . --max-warnings=0
+        run: bun lint:fix
