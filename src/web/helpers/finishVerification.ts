@@ -3,8 +3,8 @@ import { tryCatch } from '../../utils/tryCatch';
 import { getMappingForLetter } from '../../utils/mapping';
 import { getOrCreateRole } from '../../utils/getOrCreateRole';
 import {
-	createErrorContainer,
-	createSuccessContainer,
+	createAuthErrorContainer,
+	createAuthSuccessContainer,
 } from '../../utils/authComponents';
 
 export async function finishVerification(
@@ -18,7 +18,7 @@ export async function finishVerification(
 		await tryCatch(
 			message.edit({
 				components: [
-					createErrorContainer('Dein Kürzel entspricht nicht dem Muster!'),
+					createAuthErrorContainer('Dein Kürzel entspricht nicht dem Muster!'),
 				],
 			}),
 		);
@@ -32,9 +32,49 @@ export async function finishVerification(
 	).data!;
 
 	// Edit users server profile
-	await tryCatch(member.roles.add(deptRole));
-	await tryCatch(member.roles.add(classRole));
-	await tryCatch(member.setNickname(`${user.givenName} ${user.surname}`));
+	// TODO: reverse steps if somthing fails
+	const deptRoleResult = await tryCatch(member.roles.add(deptRole));
+	if (deptRoleResult.error) {
+		await tryCatch(
+			message.edit({
+				components: [
+					createAuthErrorContainer(
+						'Abteilungsrolle konnte nicht hinzugefügt werden',
+					),
+				],
+			}),
+		);
+		throw new Error('couldnt add deptRole');
+	}
 
-	await tryCatch(message.edit({ components: [createSuccessContainer()] }));
+	const classRoleResult = await tryCatch(member.roles.add(classRole));
+	if (classRoleResult.error) {
+		await tryCatch(
+			message.edit({
+				components: [
+					createAuthErrorContainer(
+						'Klassenrollen konnte nicht hinzugefügt werden',
+					),
+				],
+			}),
+		);
+		throw new Error('couldnt add classRole');
+	}
+
+	const nicknameResult = await tryCatch(
+		member.setNickname(`${user.givenName} ${user.surname}`),
+	);
+	if (nicknameResult.error) {
+		console.log(nicknameResult.error);
+		await tryCatch(
+			message.edit({
+				components: [
+					createAuthErrorContainer('Spitzname konnte nicht gesetzt werden'),
+				],
+			}),
+		);
+		throw new Error('couldnt set nickname');
+	}
+
+	await tryCatch(message.edit({ components: [createAuthSuccessContainer()] }));
 }

@@ -6,11 +6,11 @@ import { config } from '../../config';
 import { tryCatch } from '../../utils/tryCatch';
 import { graphClientWithToken } from '../helpers/graph';
 import { finishVerification } from '../helpers/finishVerification';
-import { createErrorContainer } from '../../utils/authComponents';
+import { createAuthErrorContainer } from '../../utils/authComponents';
 import { client } from '../../index';
 import type { UserData } from '../interfaces/UserData';
 import type { DecodedState } from '../interfaces/DecodedState';
-import { pendingByDiscordId } from '../../interfaces/Pending';
+import { pendingAuthByDiscordId } from '../../interfaces/Pending';
 
 /* export const authenticate = async (req: Request, res: Response) => {
   const state = Math.random().toString(36).substring(7);
@@ -119,7 +119,7 @@ export const callback = async (req: Request, res: Response) => {
 		});
 	}
 
-	const p = pendingByDiscordId.get(discordId);
+	const p = pendingAuthByDiscordId.get(discordId);
 	if (!p || p.csrf !== csrf) {
 		return res.status(400).render('error', {
 			message: 'Invalid or expired state.',
@@ -142,14 +142,15 @@ export const callback = async (req: Request, res: Response) => {
 	// do roles / nickname; edit UI
 	try {
 		await finishVerification(member, message, userData);
-	}
-	catch (e) {
+	} catch (e) {
 		console.log(e);
-		await message.edit({ components: [createErrorContainer()] });
-	}
-	finally {
-		pendingByDiscordId.delete(discordId);
+		await message.edit({ components: [createAuthErrorContainer()] });
+	} finally {
+		pendingAuthByDiscordId.delete(discordId);
 	}
 
-	res.status(200).render('success');
+	res.status(200).render('success', {
+		message:
+			'Die Verknüpfung von deinem Discord-Profil und Schul-Microsoft-Konto war erfolgreich!',
+	});
 };

@@ -5,4 +5,8 @@ export interface UserData {
 	surname: string;
 	givenName: string;
 	mail: string | null;
+	jobTitle: string | null;
+	[key: ExtensionPropertyKey]: string | null;
 }
+
+export type ExtensionPropertyKey = `extension_${string}_discordId`;

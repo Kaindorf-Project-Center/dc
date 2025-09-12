@@ -4,17 +4,15 @@ import { randomBytes } from 'crypto';
 
 import type { Result } from '../utils/tryCatch';
 import { tryCatch } from '../utils/tryCatch';
-import {
-	createAuthContainer,
-	createAuthTimeoutContainer,
-} from '../utils/authComponents';
-import { getAuthUrl } from '../utils/getAuthUrl';
-import { pendingAuthByDiscordId } from '../interfaces/Pending';
+import { createAuthTimeoutContainer } from '../utils/authComponents';
+import { pendingUnauthByDiscordId } from '../interfaces/Pending';
+import { getUnauthUrl } from 'src/utils/getUnauthUrl';
+import { createUnauthContainer } from 'src/utils/unauthComponents';
 
-export async function handleAuthentication(
+export async function handleUnauthentication(
 	member: GuildMember,
-	interaction?: ChatInputCommandInteraction,
-): Promise<Result<void, Error>> {
+	interaction: ChatInputCommandInteraction,
+): Promise<Result<true, Error>> {
 	// DM-Channel erstellen
 	const dmChannelResult = await tryCatch(member.createDM());
 	if (dmChannelResult.error) {
@@ -30,9 +28,9 @@ export async function handleAuthentication(
 	);
 
 	// Authentifizierungs-URL erstellen
-	const authUrl = getAuthUrl(encodedState);
+	const authUrl = getUnauthUrl(encodedState);
 
-	const container = createAuthContainer(authUrl);
+	const container = createUnauthContainer(authUrl);
 
 	let message;
 	if (interaction) {
@@ -49,18 +47,10 @@ export async function handleAuthentication(
 
 		message = replyResult.data.resource!.message!;
 	} else {
-		const sendResult = await tryCatch(
-			dmChannel.send({
-				flags: MessageFlags.IsComponentsV2,
-				components: [container],
-			}),
-		);
-		if (sendResult.error) {
-			return { data: null, error: sendResult.error };
-		}
-		message = sendResult.data;
+		return { data: null, error: new Error('no interaction') };
 	}
-	pendingAuthByDiscordId.set(member.id, {
+
+	pendingUnauthByDiscordId.set(member.id, {
 		csrf: csrfToken,
 		guildId: member.guild.id,
 		channelId: dmChannel.id,
@@ -78,7 +68,7 @@ export async function handleAuthentication(
 			void tryCatch(message.edit({ components: [timeoutContainer] }))
 				.then(() => {
 					console.log(
-						`Verifizierung für ${member.user.username} hat zu lange gedauert.`,
+						`Unauth für ${member.user.username} hat zu lange gedauert.`,
 					);
 				})
 				.catch(console.error);
@@ -87,6 +77,5 @@ export async function handleAuthentication(
 			console.log(`Collector für ${member.user.username} beendet.`);
 		}
 	});
-
-	return { data: undefined, error: null };
+	return { data: true, error: null };
 }

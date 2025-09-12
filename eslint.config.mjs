@@ -18,11 +18,10 @@ export default [
   {
     rules: {
       "arrow-spacing": ["warn", { before: true, after: true }],
-      "brace-style": ["error", "stroustrup", { allowSingleLine: true }],
+      "brace-style": ["error", "1tbs", { allowSingleLine: true }],
       "comma-dangle": ["error", "always-multiline"],
       "comma-spacing": "error",
       "comma-style": "error",
-      curly: ["error", "multi-line", "consistent"],
       "dot-location": ["error", "property"],
       "handle-callback-err": "off",
       indent: ["error", "tab"],

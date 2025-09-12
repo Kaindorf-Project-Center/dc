@@ -14,7 +14,9 @@ async function importDefault<T>(filePath: string): Promise<T> {
 
 export const loadEvents = async (client: Client): Promise<void> => {
 	const eventsPath = path.join(__dirname, 'events');
-	const eventFiles = fs.readdirSync(eventsPath).filter((file) => file.endsWith('.ts'));
+	const eventFiles = fs
+		.readdirSync(eventsPath)
+		.filter((file) => file.endsWith('.ts'));
 
 	for (const file of eventFiles) {
 		const filePath = path.join(eventsPath, file);
@@ -26,8 +28,7 @@ export const loadEvents = async (client: Client): Promise<void> => {
 
 		if (event.once) {
 			client.once(event.name, handler);
-		}
-		else {
+		} else {
 			client.on(event.name, handler);
 		}
 	}
@@ -39,14 +40,18 @@ export const loadCommands = async (): Promise<Collection<string, Command>> => {
 	const commandsPath = path.join(__dirname, 'commands');
 	const commands = new Collection<string, Command>();
 
-	const commandFiles = fs.readdirSync(commandsPath).filter((file) => file.endsWith('.ts'));
+	const commandFiles = fs
+		.readdirSync(commandsPath)
+		.filter((file) => file.endsWith('.ts'));
 
 	for (const file of commandFiles) {
 		const filePath = path.join(commandsPath, file);
 		const command = await importDefault<Command>(filePath);
 
 		if (!command?.data) {
-			console.error(`Command in file ${file} is missing a 'data.name' property.`);
+			console.error(
+				`Command in file ${file} is missing a 'data.name' property.`,
+			);
 			continue;
 		}
 

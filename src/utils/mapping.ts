@@ -51,8 +51,7 @@ export async function getMappingForLetter(
 			return { data: entry, error: null };
 		}
 		return { data: null, error: new Error('Mapping not found for letter') };
-	}
-	catch (err) {
+	} catch (err) {
 		return { data: null, error: err as Error };
 	}
 }
@@ -80,10 +79,7 @@ export async function parseYamlToMap(): Promise<
 	Result<Map<string, DepartmentDetails>, Error>
 	> {
 	const fileResult = await tryCatch(
-		fsPromises.readFile(
-			ROLE_MAPPING_FILEPATH,
-			'utf8',
-		),
+		fsPromises.readFile(ROLE_MAPPING_FILEPATH, 'utf8'),
 	);
 
 	if (fileResult.error) {
@@ -106,8 +102,7 @@ export async function parseYamlToMap(): Promise<
 		}
 
 		return { data: resultMap, error: null };
-	}
-	catch (err) {
+	} catch (err) {
 		return { data: null, error: err as Error };
 	}
 }

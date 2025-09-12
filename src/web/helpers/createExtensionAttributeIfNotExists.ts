@@ -25,6 +25,7 @@ export async function createExtensionAttributeIfNotExists(accessToken: string) {
 		if (existingAttribute) {
 			console.log('Extension attribute \'discordId\' already exists.');
 			// Skip creation
+			console.log(existingAttribute.name!);
 			return existingAttribute;
 		}
 
@@ -32,7 +33,7 @@ export async function createExtensionAttributeIfNotExists(accessToken: string) {
 		console.log('Creating new extension attribute \'discordId\'...');
 
 		const extensionProperty = {
-			name: 'discordId',
+			name: 'test',
 			dataType: 'String',
 			targetObjects: ['User'],
 		};
@@ -50,8 +51,7 @@ export async function createExtensionAttributeIfNotExists(accessToken: string) {
 
 		console.log('Created Extension Attribute:', createResponse);
 		return createResponse;
-	}
-	catch (e) {
+	} catch (e) {
 		console.error(e);
 		throw new Error('Failed to find or create Extension Attribute.');
 	}

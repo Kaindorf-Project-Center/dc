@@ -21,12 +21,10 @@ const event: Event<typeof Events.InteractionCreate> = {
 
 		try {
 			await command.execute(interaction);
-		}
-		catch (error: unknown) {
+		} catch (error: unknown) {
 			if (error instanceof Error) {
 				console.error(error);
-			}
-			else {
+			} else {
 				console.error(String(error));
 			}
 
@@ -37,8 +35,7 @@ const event: Event<typeof Events.InteractionCreate> = {
 
 			if (interaction.replied || interaction.deferred) {
 				await interaction.followUp(payload);
-			}
-			else {
+			} else {
 				await interaction.reply(payload);
 			}
 		}

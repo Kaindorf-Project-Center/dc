@@ -10,6 +10,9 @@ const ConfigSchema = z.object({
 	MICROSOFT_REDIRECT_URI: z
 		.string()
 		.url('MICROSOFT_REDIRECT_URI must be a valid URL'),
+	MICROSOFT_UNAUTH_REDIRECT_URI: z
+		.string()
+		.url('MICROSOFT_UNAUTH_REDIRECT_URI must be a valid URL'),
 	MICROSOFT_TENANT_ID: z.string().nonempty('MICROSOFT_TENANT_ID is required'),
 	BACKEND_BASE_URL: z.string().nonempty('DISCORD_BASE_URL is required'),
 	CLIENT_ID: z.string().nonempty('CLIENT_ID is required'),

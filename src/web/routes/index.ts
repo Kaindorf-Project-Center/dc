@@ -12,6 +12,3 @@ router.get('/auth/callback', callback);
 router.get('/unauth/callback', unauthenticate);
 
 // router.get('/verify/:discordId', verify);
-/* router.get('/', (req, res) => {
-    res.render('success', { message: 'Hello, World!'});
-})*/

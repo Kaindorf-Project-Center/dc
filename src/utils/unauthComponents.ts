@@ -1,9 +1,9 @@
 import { ContainerBuilder, TextDisplayBuilder } from 'discord.js';
 import { createActionRow, createAuthButton } from './authButtons';
 
-export function createAuthContainer(url: string): ContainerBuilder {
+export function createUnauthContainer(url: string): ContainerBuilder {
 	const headerText = new TextDisplayBuilder().setContent(
-		'**Erfülle** die folgende **Anmeldung um Zugang** zum Kaindorf-Discord-Server **zu erhalten**:',
+		'**Erfülle** die folgende Anmeldung **um den Zugang** zum Kaindorf-Discord-Server **zu verlieren**:',
 	);
 
 	const firstHeaderText = new TextDisplayBuilder().setContent(
@@ -11,10 +11,10 @@ export function createAuthContainer(url: string): ContainerBuilder {
 	);
 
 	const firstContentText = new TextDisplayBuilder().setContent(
-		'**Drücke** den folgenden **Link**, und melde dich mit deinem von der Schule bereitgestellten Microsoft-Konto an.',
+		'**Drücke** den folgenden **Link**, und melde dich mit deinem von der Schule bereitgestellten Microsoft-Konto an, welches du bereits bei der anmeldung verwendet hast.',
 	);
 	const firstSubText = new TextDisplayBuilder().setContent(
-		'-# Dadurch wird deine Discord-ID mit deinem Microsoft-Konto der Schule assoziiert und du erhältst die richtigen Rollen zu deinem Jahrgang und Abteilung, zusätzlich wird dein Spitzname auf dem Server auf deinen **Echten Namen** gesetzt.',
+		'-# Dadurch wird deine Discord-ID von deinem Microsoft-Konto der Schule entfernt und dein Spitzname und deine Rollen werden zurückgesetzt, dadurch du verlierst den Zugang zum Kaindorf-Discord-Server',
 	);
 
 	const authButton = createAuthButton(url);
@@ -34,17 +34,17 @@ export function createAuthContainer(url: string): ContainerBuilder {
 	return container;
 }
 
-export function createAuthSuccessContainer(): ContainerBuilder {
+export function createUnauthSuccessContainer(): ContainerBuilder {
 	const firstHeaderText = new TextDisplayBuilder().setContent(
-		'## Verifizierung Erfolgreich',
+		'## Erfolgreich Entauthentifiziert',
 	);
 
 	const firstContentText = new TextDisplayBuilder().setContent(
-		'Die Verifizierung war erfolgreich, du hast jetzt vollen Zugriff auf den Server und kannst dich mit den anderen Schülern und ex-Schülern unterhalten.',
+		'Die Entauthentifizierung war erfolgreich, du hast deine Rollen am Server wurden dir entzogen und dein Spitzname zurückgesetzt, außerdem wurde dein Discord-Profil von deinem Microsoft-Schul-Account getrennt.',
 	);
 
 	const subContentText = new TextDisplayBuilder().setContent(
-		'### Viel Spaß! 🥳',
+		'### Hoffentlich hattest du eine gute Zeit am Server!',
 	);
 
 	const container = new ContainerBuilder()
@@ -58,13 +58,13 @@ export function createAuthSuccessContainer(): ContainerBuilder {
 	return container;
 }
 
-export function createAuthErrorContainer(reason?: string): ContainerBuilder {
+export function createUnauthErrorContainer(reason?: string): ContainerBuilder {
 	const firstHeaderText = new TextDisplayBuilder().setContent(
-		'## Verifizierung Fehlgeschlagen',
+		'## Entauthentifizierung fehlgeschlagen',
 	);
 
 	const firstContentText = new TextDisplayBuilder().setContent(
-		'Es ist ein Fehler bei der Verifizierung aufgetreten. Versuche es später erneut oder Wende dich an einen Sys-Admin oder Praktikanten für Hilfe.',
+		'Es ist ein Fehler bei der Verifizierung aufgetreten. Versuche es später erneut oder wende dich an einen Sys-Admin oder Praktikanten für Hilfe.',
 	);
 
 	const container = new ContainerBuilder()
@@ -79,13 +79,13 @@ export function createAuthErrorContainer(reason?: string): ContainerBuilder {
 	return container;
 }
 
-export function createAuthTimeoutContainer(): ContainerBuilder {
+export function createUnauthTimeoutContainer(): ContainerBuilder {
 	const firstHeaderText = new TextDisplayBuilder().setContent(
-		'## Authentifizierung abgelaufen',
+		'## Entauthentifizierung abgelaufen',
 	);
 
 	const firstContentText = new TextDisplayBuilder().setContent(
-		'Die Authentifizierung ist abgelaufen. Bitte verwenden Sie /authenticate, um es erneut zu versuchen.',
+		'Die Entauthentifizierung ist abgelaufen. Bitte verwende /unauthenticate, um es erneut zu versuchen.',
 	);
 
 	const container = new ContainerBuilder()

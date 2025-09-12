@@ -72,14 +72,13 @@ async function handleMicrosoftStatus(member: GuildMember): Promise<boolean> {
 
 	if (searchResponse.value && searchResponse.value.length > 0) {
 		// User found – they are authenticated (i.e. have completed the OAuth flow)
+		console.log(searchResponse.value);
 		return true;
-	}
-	else {
+	} else {
 		// No user found with that Discord ID
 		return false;
 	}
 }
-
 
 async function handleDiscordStatus(member: GuildMember): Promise<boolean> {
 	if (member.nickname == null) return false;

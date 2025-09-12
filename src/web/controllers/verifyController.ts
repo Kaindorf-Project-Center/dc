@@ -45,15 +45,13 @@ export const verify = async (req: Request, res: Response) => {
 				message: 'User is authenticated',
 				user: searchResponse.value[0],
 			});
-		}
-		else {
+		} else {
 			// No user found with that Discord ID
 			return res
 				.status(404)
 				.json({ message: 'User not found or not authenticated.' });
 		}
-	}
-	catch (error) {
+	} catch (error) {
 		console.error('Error verifying user:', error);
 		return res.status(500).json({ error: 'Internal server error.' });
 	}

@@ -1,4 +1,4 @@
-export type Pending = {
+export type PendingAuth = {
 	csrf: string;
 	guildId: string;
 	channelId: string;
@@ -6,4 +6,14 @@ export type Pending = {
 	memberId: string;
 };
 
-export const pendingByDiscordId = new Map<string, Pending>();
+export const pendingAuthByDiscordId = new Map<string, PendingAuth>();
+
+export type PendingUnauth = {
+	csrf: string;
+	guildId: string;
+	channelId: string;
+	messageId: string;
+	memberId: string;
+};
+
+export const pendingUnauthByDiscordId = new Map<string, PendingUnauth>();
