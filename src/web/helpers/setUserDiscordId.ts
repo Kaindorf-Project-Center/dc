@@ -13,7 +13,7 @@ export async function setUserDiscordId(
 	// should only be null if you want to delete the discordId of a user in entra
 	discordId: string | null,
 ): Promise<Result<true, Error>> {
-	console.log(`Updating discordId for user: ${userId}...`);
+	console.log(`Updating discordId(${discordId}) for user: ${userId}...`);
 
 	const p = pendingAuthByDiscordId.get(discordId);
 	const t = createT(resolveLangByLocale(p.locale));
@@ -40,19 +40,18 @@ export async function setUserDiscordId(
 			console.log('A user with that Discord ID already exists.');
 			return { data: null, error: new Error(t('callback.discordIdAlreadyUsed')) };
 		} else {
-			graph
-				.api(`/users${userId}`)
-				.update({ [`extension_${clientIdNoDashes}_discordId`]: discordId })
-				.catch((r) => {
-					console.log(`Failed to update discordId ${r}`);
-					return {
-						data: null,
-						error: new Error(t('common.errors.patchUser')),
-					};
-				});
+			try {
+				await graph
+					.api(`/users/${userId}`)
+					.update({ [`extension_${clientIdNoDashes}_discordId`]: discordId });
 
+				console.log(`Successfully updated discordId for ${userId}`);
+				return { data: true, error: null };
+			} catch (r) {
+				console.log('Failed to update discordId', r);
+				return { data: null, error: new Error(t('common.errors.patchUser')) };
+			}
 		}
-		console.log(`Successfully updated discordId for ${userId}`);
 	}
 
 	return { data: true, error: null };
