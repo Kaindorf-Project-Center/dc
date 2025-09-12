@@ -14,6 +14,13 @@ const resources = {
 				openDiscord: 'Öffne Discord',
 				code: '200',
 		  },
+			successUnlink: {
+				title: 'Erfolg',
+				heading: 'Verknüpfung aufgehoben',
+				description: 'Dein Discord-Profil und dein Schul-Microsoft-Konto sind nun nicht mehr verknüpft!',
+				openDiscord: 'Öffne Discord',
+				code: '200',
+			},
 		  error: {
 				title: 'Fehler',
 				heading: 'Da ist was schiefgelaufen',
@@ -23,6 +30,22 @@ const resources = {
 		  common: {
 				help: 'Für Hilfe wende dich an einen Sys-Admin oder Praktikantenkarli.',
 		  },
+		},
+		unauth: {
+			accessTokenError: 'Fehler beim Laden des Zugriff-Tokens.',
+			msLoadError: 'Das authentifizierte Microsoft-Profil konnte nicht geladen werden.',
+			appTokenError: 'Fehler beim Laden des App-Tokens.',
+			mismatchAccount: 'Das verwendete Microsoft-Konto passt nicht zum Discord-Account.',
+			deleteDiscordIdError: 'Beim Löschen deiner Discord-ID in Entra ist ein Fehler aufgetreten.',
+			header: '**Erfülle** die folgende **Abmeldung**, um den Zugang zum Kaindorf-Discord-Server **zu entfernen**:',
+			msHeader: '## Entkoppeln mit Microsoft',
+			msContent: '**Drücke** den folgenden **Link**, und melde dich mit dem Microsoft-Konto an, das du bei der Registrierung verwendet hast.',
+			msSub: '-# Dadurch wird deine Discord-ID von deinem Schul-Microsoft-Konto entfernt, deine Rollen werden entzogen und dein Spitzname zurückgesetzt; du verlierst damit den Serverzugang.',
+			successHeader: '## Erfolgreich entauthentifiziert',
+			successBody: 'Die Entauthentifizierung war erfolgreich. Deine Rollen wurden entfernt, dein Spitzname zurückgesetzt und die Verknüpfung mit deinem Schul-Microsoft-Konto wurde aufgehoben.',
+			successSub: '### Hoffentlich hattest du eine gute Zeit auf dem Server!',
+			failHeader: '## Entauthentifizierung fehlgeschlagen',
+			timeoutHeader: '## Entauthentifizierung abgelaufen',
 		},
 		common: {
 			errors: {
@@ -34,6 +57,7 @@ const resources = {
 				_505: 'Interner Server Fehlher.',
 				patchUser: 'Fehler beim Updaten des Benutzers.',
 				invalidOrExpiredState: 'Invalider oder abgelaufener Status.',
+				unauthExpired: 'Die Entauthentifizierung ist abgelaufen. Bitte verwende /unauthenticate, um es erneut zu versuchen.',
 			},
 		},
 		auth: {
@@ -67,12 +91,19 @@ const resources = {
 		},
 	},
 	en: {
-		signInButton: 'Sogn in with Microsoft',
+		signInButton: 'Sign in with Microsoft',
 		web: {
 			success: {
 				title: 'Success',
 				heading: 'That worked',
 				description: 'Linking your Discord profile with your school Microsoft account succeeded!',
+				openDiscord: 'Open Discord',
+				code: '200',
+			},
+			successUnlink: {
+				title: 'Success',
+				heading: 'Link removed',
+				description: 'Your Discord profile and school Microsoft account are no longer linked!',
 				openDiscord: 'Open Discord',
 				code: '200',
 			},
@@ -83,19 +114,36 @@ const resources = {
 				detailsLabel: 'Details:',
 			},
 			common: {
-				help: 'For help, contact a sysadmin or trainee',
+				help: 'For help, contact a sysadmin or Praktikantenkarli.',
 			},
+		},
+		unauth: {
+			accessTokenError: 'Failed to acquire access token.',
+			msLoadError: 'The authenticated Microsoft profile could not be loaded.',
+			appTokenError: 'Failed to get app token.',
+			mismatchAccount: 'The Microsoft account used does not match the Discord account.',
+			deleteDiscordIdError: 'An error occurred while deleting your Discord ID in Entra.',
+			header: '**Complete** the following **unlink** to remove your access to the Kaindorf Discord server:',
+			msHeader: '## Unlink with Microsoft',
+			msContent: '**Click** the link below and sign in with the same school Microsoft account you used during registration.',
+			msSub: '-# This removes your Discord ID from your school Microsoft account, revokes your roles, and resets your nickname; you will lose access to the server.',
+			successHeader: '## Unlink successful',
+			successBody: 'Unlinking completed. Your roles were removed, your nickname was reset, and your Discord profile was disconnected from your school Microsoft account.',
+			successSub: '### Hope you had a good time on the server!',
+			failHeader: '## Unlink failed',
+			timeoutHeader: '## Unlink session expired',
 		},
 		common: {
 			errors: {
 				guildNotFound: 'Guild not found.',
 				memberNotFound: 'Member not found.',
-				verifyFailed: 'An error occurred during verification. Try again later or contact a sysadmin or trainee.',
+				verifyFailed: 'An error occurred during verification. Try again later or contact a sysadmin or Praktikantenkarli.',
 				authExpired: 'Authentication expired. Please use /authenticate to try again.',
 				channelNotTextBased: 'Channel not text-based',
 				_505: 'Internal server errror',
 				patchUser: 'Error pattching User',
 				invalidOrExpiredState: 'Invalid or expired state.',
+				unauthExpired: 'Unauthentication expired. Please use /unauthenticate to try again.',
 			},
 		},
 		auth: {

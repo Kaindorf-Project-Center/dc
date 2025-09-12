@@ -31,7 +31,8 @@ export async function handleUnauthentication(
 	// Authentifizierungs-URL erstellen
 	const authUrl = getUnauthUrl(encodedState);
 
-	const container = createUnauthContainer(authUrl);
+	const t = getT(interaction ? interaction as Interaction : undefined);
+	const container = createUnauthContainer(authUrl, t);
 
 	let message;
 	if (interaction) {
@@ -59,7 +60,6 @@ export async function handleUnauthentication(
 		memberId: member.id,
 		locale: interaction.locale ?? undefined,
 	});
-	const t = getT(interaction ? interaction as Interaction : undefined);
 
 	const collector = dmChannel.createMessageComponentCollector({
 		time: 60000 * 5,

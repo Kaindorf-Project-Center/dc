@@ -6,11 +6,13 @@ import {
 	createUnauthErrorContainer,
 	createUnauthSuccessContainer,
 } from 'src/utils/unauthComponents';
+import type { TFunction } from 'src/i18n/i18n';
 
 export async function finishUnauthentication(
 	member: GuildMember,
 	message: Message,
 	user: { givenName: string; surname: string; userPrincipalName: string },
+	t: TFunction,
 ) {
 	const shorthand = user.userPrincipalName.split('@')[0];
 
@@ -20,7 +22,7 @@ export async function finishUnauthentication(
 			message.edit({
 				components: [
 					createUnauthErrorContainer(
-						'Dein Kürzel entspricht nicht dem Muster!',
+						t, t('verify.wrongAbbr'),
 					),
 				],
 			}),
@@ -40,6 +42,6 @@ export async function finishUnauthentication(
 	await tryCatch(member.setNickname(''));
 
 	await tryCatch(
-		message.edit({ components: [createUnauthSuccessContainer()] }),
+		message.edit({ components: [createUnauthSuccessContainer(t)] }),
 	);
 }

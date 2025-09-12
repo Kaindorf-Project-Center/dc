@@ -15,15 +15,15 @@ export async function setUserDiscordId(
 ): Promise<Result<true, Error>> {
 	console.log(`Updating discordId(${discordId}) for user: ${userId}...`);
 
-	const p = pendingAuthByDiscordId.get(discordId);
-	const t = createT(resolveLangByLocale(p.locale));
-
 	const clientIdNoDashes = config.MICROSOFT_CLIENT_ID.replace(/-/g, '');
 
 	const graph = graphClientWithToken(accessToken);
 
 	if (discordId !== null) {
 		const filterQuery = `extension_${clientIdNoDashes}_discordId eq '${discordId}'`;
+
+		const p = pendingAuthByDiscordId.get(discordId);
+		const t = createT(resolveLangByLocale(p?.locale));
 
 		// TODO: missing error handling
 		const searchResponse = (await graph

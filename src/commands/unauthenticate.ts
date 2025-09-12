@@ -9,7 +9,7 @@ const authenticateCommand: Command = {
 	data: new SlashCommandBuilder()
 		.setName('unauthenticate')
 		.setContexts(InteractionContextType.BotDM)
-		.setDescription('Startet den Entauthentifizierungsprozess.'),
+		.setDescription('Starts the unauthentication process.'),
 	async execute(interaction: ChatInputCommandInteraction): Promise<void> {
 		const guild = interaction.client.guilds.cache.get(config.GUILD_ID);
 

@@ -10,15 +10,24 @@ import { getAppToken } from '../helpers/tokens';
 import type { DecodedState } from '../interfaces/DecodedState';
 import type { ExtensionPropertyKey, UserData } from '../interfaces/UserData';
 import { finishUnauthentication } from '../helpers/finishUnauthentication';
+import { createT } from 'src/i18n/i18n';
+import { resolveLangByLocale } from 'src/i18n/language';
 
 export const unauthenticate = async (req: Request, res: Response) => {
 	const { code, state: encodedState } = req.query;
 
+	const fallbackLang = 'en' as const;
 	if (!code || !encodedState) {
-		// return res.status(303).redirect('discord://');
+		const t = createT(fallbackLang);
 		return res.status(400).render('error', {
-			message: 'Missing code or state.',
+			lang: fallbackLang,
+			title: t('web.error.title'),
+			heading: t('web.error.heading'),
 			statusCode: '400',
+			description: t('web.error.genericDescription'),
+			detailsLabel: t('web.error.detailsLabel'),
+			details: t('common.errors.invalidOrExpiredState'),
+			help: t('web.common.help'),
 		});
 	}
 
@@ -26,10 +35,24 @@ export const unauthenticate = async (req: Request, res: Response) => {
 		Buffer.from(encodedState as string, 'base64').toString('utf-8'),
 	) as DecodedState;
 
-	// Retrieve the CSRF token and Discord ID from the decoded state
 	const { csrf, discordId } = decodedState;
-	console.log('CSRF Token:', csrf);
-	console.log('Discord ID:', discordId);
+
+	const p = pendingUnauthByDiscordId.get(discordId);
+	const lang = p ? resolveLangByLocale(p.locale) : fallbackLang;
+	const t = createT(lang);
+
+	if (!p || p.csrf !== csrf) {
+		return res.status(400).render('error', {
+			lang,
+			title: t('web.error.title'),
+			heading: t('web.error.heading'),
+			statusCode: '400',
+			description: t('web.error.genericDescription'),
+			detailsLabel: t('web.error.detailsLabel'),
+			details: t('common.errors.invalidOrExpiredState'),
+			help: t('web.common.help'),
+		});
+	}
 
 	const tokenRequest = {
 		code: code as string,
@@ -41,11 +64,16 @@ export const unauthenticate = async (req: Request, res: Response) => {
 		msalClient.acquireTokenByCode(tokenRequest),
 	);
 
-	if (tokenResponse.error != null) {
-		console.error(tokenResponse.error);
+	if (tokenResponse.error) {
 		return res.status(500).render('error', {
-			message: 'Failed to acquire access token.',
+			lang,
+			title: t('web.error.title'),
+			heading: t('web.error.heading'),
 			statusCode: '500',
+			description: t('web.error.genericDescription'),
+			detailsLabel: t('web.error.detailsLabel'),
+			details: t('unauth.accessTokenError'),
+			help: t('web.common.help'),
 		});
 	}
 
@@ -54,19 +82,24 @@ export const unauthenticate = async (req: Request, res: Response) => {
 	const graph = graphClientWithToken(accessToken);
 
 	// Step 2: Get the authenticated user's profile
-	const userData = (await graph
+	const userData = await graph
 		.api('/me')
-		.select(
-			'id,displayName,userPrincipalName,surname,givenName,mail,extension_863469052ea0410fbbfba8022e865293_discordId,jobTitle',
-		)
+		.select('id,displayName,userPrincipalName,surname,givenName,mail,extension_863469052ea0410fbbfba8022e865293_discordId,jobTitle')
 		.get()
-		.catch(() => {
-			return res.status(500).render('error', {
-				message:
-					'Das authetifizierte Profil konnte nicht von Microsoft geladen werden.',
-				statusCode: '500',
-			});
-		})) as UserData;
+		.catch(() => null) as UserData | null;
+
+	if (!userData) {
+		return res.status(500).render('error', {
+			lang,
+			title: t('web.error.title'),
+			heading: t('web.error.heading'),
+			statusCode: '500',
+			description: t('web.error.genericDescription'),
+			detailsLabel: t('web.error.detailsLabel'),
+			details: t('unauth.msLoadError'),
+			help: t('web.common.help'),
+		});
+	}
 
 	const extensionPropertyKey = Object.keys(userData).find(
 		(key) => key.startsWith('extension_') && key.endsWith('_discordId'),
@@ -74,8 +107,14 @@ export const unauthenticate = async (req: Request, res: Response) => {
 
 	if (userData[extensionPropertyKey] !== discordId) {
 		return res.status(400).render('error', {
-			message: 'Das verwendete Microsoft-Konto passt nicht zum discord account',
+			lang,
+			title: t('web.error.title'),
+			heading: t('web.error.heading'),
 			statusCode: '400',
+			description: t('web.error.genericDescription'),
+			detailsLabel: t('web.error.detailsLabel'),
+			details: t('unauth.mismatchAccount'),
+			help: t('web.common.help'),
 		});
 	}
 
@@ -84,10 +123,16 @@ export const unauthenticate = async (req: Request, res: Response) => {
 
 	const appToken = await getAppToken(msalClient);
 
-	if (appToken.error != null) {
+	if (appToken.error) {
 		return res.status(500).render('error', {
-			message: 'Failed to get AppToken',
+			lang,
+			title: t('web.error.title'),
+			heading: t('web.error.heading'),
 			statusCode: '500',
+			description: t('web.error.genericDescription'),
+			detailsLabel: t('web.error.detailsLabel'),
+			details: t('unauth.appTokenError'),
+			help: t('web.common.help'),
 		});
 	}
 
@@ -100,17 +145,14 @@ export const unauthenticate = async (req: Request, res: Response) => {
 	if (deleteDiscordIdResult.error) {
 		console.error(deleteDiscordIdResult.error);
 		return res.status(400).render('error', {
-			message:
-				'Beim löschen deiner discordId in Entra ist ein Fehler aufgetreten',
+			lang,
+			title: t('web.error.title'),
+			heading: t('web.error.heading'),
 			statusCode: '400',
-		});
-	}
-
-	const p = pendingUnauthByDiscordId.get(discordId);
-	if (!p || p.csrf !== csrf) {
-		return res.status(400).render('error', {
-			message: 'Invalid or expired state.',
-			statusCode: '400',
+			description: t('web.error.genericDescription'),
+			detailsLabel: t('web.error.detailsLabel'),
+			details: t('unauth.deleteDiscordIdError'),
+			help: t('web.common.help'),
 		});
 	}
 
@@ -120,15 +162,21 @@ export const unauthenticate = async (req: Request, res: Response) => {
 	const channel = await client.channels.fetch(p.channelId);
 	if (!channel?.isTextBased()) {
 		return res.status(500).render('error', {
-			message: 'Channel not text-based.',
+			lang,
+			title: t('web.error.title'),
+			heading: t('web.error.heading'),
 			statusCode: '500',
+			description: t('web.error.genericDescription'),
+			detailsLabel: t('web.error.detailsLabel'),
+			details: t('common.errors.channelNotTextBased'),
+			help: t('web.common.help'),
 		});
 	}
 	const message = await channel.messages.fetch(p.messageId);
 
 	// do roles / nickname; edit UI
 	try {
-		await finishUnauthentication(member, message, userData);
+		await finishUnauthentication(member, message, userData, t);
 	} catch (e) {
 		console.log(e);
 		// await message.edit({ components: [createErrorContainer()] });
@@ -136,8 +184,13 @@ export const unauthenticate = async (req: Request, res: Response) => {
 		pendingUnauthByDiscordId.delete(discordId);
 	}
 
-	res.status(200).render('success', {
-		message:
-			'Dein Discord-Profil und Schul-Microsoft-Konto sind nun nicht mehr verknüpft!',
+	return res.status(200).render('success', {
+		lang,
+		title: t('web.successUnlink.title'),
+		heading: t('web.successUnlink.heading'),
+		statusCode: t('web.successUnlink.code'),
+		description: t('web.successUnlink.description'),
+		openDiscord: t('web.successUnlink.openDiscord'),
+		help: t('web.common.help'),
 	});
 };
